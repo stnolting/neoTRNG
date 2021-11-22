@@ -1,6 +1,6 @@
 # :game_die: neoTRNG
 
-**A Tiny and Platform-Independent True Random Number Generator for _any_ FPGA**
+**A Tiny and Platform-Independent True Random Number Generator for _any_ FPGA.**
 
 [![License](https://img.shields.io/github/license/stnolting/neoTRNG)](https://github.com/stnolting/neoTRNG/blob/main/LICENSE)
 [![DOI](https://zenodo.org/badge/430418414.svg)](https://zenodo.org/badge/latestdoi/430418414)
@@ -14,16 +14,23 @@
    * [Dieharder Battery of Random Tests](#Dieharder-Battery-of-Random-Tests)
    * [Throughput](#Throughput)
    * [Hardware Utilization](#Hardware-Utilization)
+* [References](#References)
 
 
 ## Introduction
 
 The neoTRNG provides a small and high-quality _true random number generator_ (TRNG) that is based on free-running
-and cross-coupled ring-oscillators. Due to it's high throughput and the technology-agnostic architecture the neoTRNG
-can be used in a wide range of setups and applications. 
+and cross-coupled ring-oscillators. The architecture provides a technology-agnostic implementation that allows to
+synthesize the TRNG for _any_ FPGA platform.
+
+Note that the neoTRNG only provides a "random PHY" - an interface to the physical entropy source. Any kind of more
+sophisticated post-processing like advanced whitening, health-monitoring or even tampering-detection should be
+implemented in the user logic or the application software.
 
 :information_source: This project is a "spin-off" project of the [NEORV32 RISC-V Processor](https://github.com/stnolting/neorv32),
 where the neoTRNG is implemented as a default processor SoC module.
+
+:loudspeaker: Feedback from the community is highly appreciated!
 
 **Key features**
 
@@ -394,3 +401,15 @@ neoTRNG_inst (neoTRNG)                                             42           
   neoTRNG_cell_inst[1].neoTRNG_cell_inst_i (neoTRNG_cell)          12                26
   neoTRNG_cell_inst[2].neoTRNG_cell_inst_i (neoTRNG_cell)          16                34
 ```
+
+
+## References
+
+* Kumar, Sandeep S., et al. "The butterfly PUF protecting IP on every FPGA." 2008 IEEE International Workshop
+on Hardware-Oriented Security and Trust. IEEE, 2008.
+* Tuncer, Taner, et al. "Implementation of non-periodic sampling true random number generator on FPGA."
+Informacije Midem 44.4 (2014): 296-302.
+* Payá-Vayá, Guillermo, Christopher Bartels, and Holger Blume. "Small footprint synthesizable temperature sensor
+for FPGA devices." Journal of Systems Architecture 76 (2017): 28-38.
+* Brown, Robert G., Dirk Eddelbuettel, and David Bauer. "Dieharder." Duke University Physics Department Durham,
+NC (2018): 27708-0305.
