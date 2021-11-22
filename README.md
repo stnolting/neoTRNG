@@ -13,12 +13,11 @@
    * [Dieharder Battery of Random Tests](#Dieharder-Battery-of-Random-Tests)
    * [Throughput](#Throughput)
    * [Hardware Utilization](#Hardware-Utilization)
-* [References](#References)
 
 
 ## Introduction
 
-The neoTRNG provides a small and high-quality _true_ random number generator (TRNG) that is based on free-running
+The neoTRNG provides a small and high-quality _true random number generator_ (TRNG) that is based on free-running
 and cross-coupled ring-oscillators. Due to it's high throughput and the technology-agnostic architecture the neoTRNG
 can be used in a wide range of setups and applications. 
 
@@ -30,15 +29,14 @@ where the neoTRNG is implemented as a default processor SoC module.
 * [x] high quality random numbers
 * [x] high throughput
 * [x] tiny hardware footprint (less than 70 LUTs)
-* [x] technology, vendor and platform independent
+* [x] technology, vendor and platform agnostic
 * [x] easy to use, simple integration
 
 
 ## Top Entity
 
-The top entity is `neoTRNG`. The whole design is based on a single VHDL file
-([`rtl/neoTRNG.vhd`](https://github.com/stnolting/neoTRNG/blob/main/rtl/neoTRNG.vhd)).
-It can be instantiated directly without the need for any special libraries.
+The whole design is based on a single VHDL file ([`rtl/neoTRNG.vhd`](https://github.com/stnolting/neoTRNG/blob/main/rtl/neoTRNG.vhd)).
+The top entity is `neoTRNG`, which can be instantiated directly without the need for any special libraries.
 
 ```vhdl
 entity neoTRNG is
@@ -59,6 +57,9 @@ end neoTRNG;
 
 :warning: Note that the neoTRNG cannot be rtl-simulated due to it's combinatorial loops.
 
+:warning: Keeping the neoTRNG _permanently enabled_ will increase dynamic power consumption and might also
+cause local heating of the FPGA chip. Of course this highly depends on the actual configuration of the TRNG.
+
 ### Interface
 
 The neoTRNG uses a single clock domain driven by `clk_i`. This clock is also used to sample the entropy sources.
@@ -78,30 +79,30 @@ for the first time the TRNG is operational.
 
 The neoTRNG is based on a configurable number of technology-agnostic ["entropy cells"](#Entropy-Cells). The sampling of
 free-running ring oscillators is used as the actual source of entropy. The number of implemented cells is defined by the
-`NUM_CELLS` generic. The results from all cells are combined, evaluated and sampled by the [sampling unit](#Sampling-Unit).
+`NUM_CELLS` generic. The random data from all cells is combined, evaluated and sampled by the [sampling unit](#Sampling-Unit).
 
 ### Entropy Cells
 
 Each cell consists of two ring-oscillator ("RO"), which are implemented as self-feedback chains consisting of an
 odd number of inverters. The first RO implements a **short chain** oscillating at a "high" frequency. The second RO
 implements a **long chain** oscillating at a "low" frequency. A multiplexer that is controlled by a cell-external
-signal select which chain is used as cell output and also as **local feedback** to drive both chain's inputs.
+signal selects which chain is used as cell output and also as **local feedback** to drive both chain's inputs.
 
-The chain length of the _short_ chain is defined by `NUM_INV_START + i * NUM_INV_INC`, where `NUM_INV_START` defines
-the number of inverters in the very first cell (`i=0`) and `NUM_INV_INC` defines the number of additional inverters
-for each  further cell `i`. 
+The length (= number of inverters) of the _short_ chain is defined by `NUM_INV_START + i * NUM_INV_INC`, where `NUM_INV_START`
+defines the number of inverters in the very first cell (`i=0`) and `NUM_INV_INC` defines the number of additional inverters
+for each further cell `i`. 
 
-The chain length of the _long_ chain is defined by `NUM_INV_START + i * NUM_INV_INC + NUM_INV_DELAY`. Here, `NUM_INV_DELAY`
+The length of the _long_ chain is defined by `NUM_INV_START + i * NUM_INV_INC + NUM_INV_DELAY`. Here, `NUM_INV_DELAY`
 defines the number of _additional_ inverters (compared to the short chain) to form the long chain. This parameter is constant
 for all cells.
 
-The selected local feedback is synchronized to the module's clock by two consecutive FFs to avoid metastability in the final
+The selected local feedback is synchronized to the module's clock by two consecutive FFs to remove metastability in the final
 output. This final output is further processed by the [sampling unit](#Sampling-Unit).
 
-To avoid "locking" of any oscillator to a specific frequency, which would reduce entropy, the active chain length is modified
+To avoid "locking" of any RO to a specific frequency, which would reduce entropy, the active chain length is modified
 during runtime by either selecting the _short_ chain or the _long_ chain. This is accomplished by **cross-coupling** all
 entropy cells. The synchronized random bit of cell `i` is used to control the chain length of the next cell `i+1`. At the end
-of the cell array this connection wraps around, so the last cell (`i=NUM_CELLS-1`) controls the chain length of the first cell (`i=0`).
+of the cell array this connection wraps around so the last cell (`i=NUM_CELLS-1`) controls the chain length of the first cell (`i=0`).
 
 ### Implementation
 
@@ -113,27 +114,27 @@ The neoTRNG implements the inverters of each RO as **inverting latches**. Each l
 previous latch), a chain output (driving the next latch), a global reset to bring the latch into a defined state and an enable
 signal to switch the latch to _transparent mode_. 
 
-The reset signal is applied when the TRNG is disabled (setting `enable_i` low). The "latch enable" is controlled by
-a long **enable shift register** that features a distinct FF for every single latch in the design. When the module is enabled,
-this shift register starts to fill with `1`s. Thus, each latch enabled is individually enabled making it impossible for the
-synthesis tool to trim the logic ("optimize away").
+The reset signal is globally applied to all latches when the neoTRNG is disabled by setting `enable_i` low. The "latch enable"
+is controlled by a long **enable shift register** that features a distinct FF for every single latch in the design. When the
+module is enabled, this shift register starts to fill with `1`s. Thus, each latch is individually enabled making it impossible
+for the synthesis tool to trim the logic ("optimize away").
 
-The following figure shows the (Intel Quartus) RTL View of the very first entropy cell. The five blocks at the top (`inv_chain_s`)
-form the _long_ inverter chain, the three blocks (`inv_chain_s`) on the bottom form the _short_ oscillator chain. Both chains are
-connected to a multiplexer to select either of the chain. The selected output is synchronized by two FFs (providing the actual
-output of the cell) and is also feed-back to the start of both chains.
+The following figure shows the Intel Quartus Prime RTL View of the very first entropy cell. The five blocks at the top (`inv_chain_s`)
+form the _long_ inverter chain, the three blocks on the bottom (`inv_chain_s`) form the _short_ oscillator chain. Both chains are
+connected to a multiplexer to select either of the chains. The selected output is synchronized by two FFs providing the actual
+output of the cell and is also feed-back to the inputs of both chains.
 
 ![cell_rtl_view](https://raw.githubusercontent.com/stnolting/neoTRNG/main/img/neoTRNG_cell_inst0_rtl.png)
 
 The enable shift register in this cell is build from a 3-bit shift register to enable the short chain (`enable_sreg_s[2:0]`) and
 a consecutive 5-bit shift register to enable the long chain (`enable_sreg_l[4:0]`). The resulting 8-bit shift register is driven by
-the cell's enable input (to the shift register's LSB) and drives the cell's enable output (driven by the shift register's MSB).
-This allows to daisy-chain the enable shift registers of all cells.
+the cell's enable input (driving the shift register's LSB) and drives the cell's enable output (driven by the shift register's MSB).
+This allows to daisy-chain the enable shift registers of _all_ cells.
 
-The following image shows a cut-out from the Intel Quartus Technology Viewer. The top of the image shows the three inverting latches
-that form the short chain (`inv_chain_s`). All elements are successfully mapped to single LUT4s. The gate element of the highlighted
-LUt is shown on the left. As previously described, each LUT4 implements an inverting latch with reset (`DATAD`) and enable input
-(`DATAC`). The LUT's `DATAA` is used to construct the actual RO chain. The LUT's `DATAB` provides the latch feedback.
+The following image shows a cut-out from the Intel Quartus Prime Technology Viewer. The top of the image shows the three inverting latches
+that form the short chain (`inv_chain_s`). All elements are successfully mapped to single LUTs. The gate equivalent of the highlighted
+LUT is shown on the left. As previously described, each LUT implements an inverting latch with reset (`DATAD`) and enable input
+(`DATAC`). The LUT's `DATAA` input is used to construct the actual RO chain. The LUT's `DATAB` input provides the latch feedback.
 
 ![cell_map_view](https://raw.githubusercontent.com/stnolting/neoTRNG/main/img/neoTRNG_cell_inst0_map.png)
 
@@ -141,22 +142,17 @@ LUt is shown on the left. As previously described, each LUT4 implements an inver
 
 As soon as the last bit of the _enable shift register_ is set to one the sampling unit is enabled. This unit implements
 a "John von Neumann Randomness Extractor" to de-bias the obtained random data. It provides an additional 2-bit shift register
-that samples the **final random bit**, which is computed by XORing the synchronous random data outputs of all cells. In every
-second cycle the extractor evaluates the two sampled bits.
+that samples the **final random bit**, which is computed by XORing the synchronous random data output of all cells. In every
+second cycle the extractor evaluates the two sampled bits to check non-overlapping pairs of bits for _edges_.
 
-If an _edge_ is detected (`01` or `10`) the data bit from the extractor is sampled by the final sampling
-shift register and a bit counter is incremented. This data bit is set high on a rising edge (`01`) and set low on a falling edge
-(`10`). In any other case (`11` and `00`) the data sampling shift register and the bit counter stay unaffected.
-
-Whenever the 8 bits are sampled by the sampling unit the module's `valid_o` signal is set for one clock
-cycle indicating a valid data byte in `data_o`.
+If a rising edge is detected (`01`) a `0` is sampled by the final data byte shift register. If a falling edge is detected
+(`10`) a `1` is sampled by the final data byte shift register. In both cases a 3-bit wide bit counter is also increment.
+If no edge is detected, the data sampling shift register and the bit counter stay unaffected. Whenever the 8 bits are sampled
+by the sampling shift register the module's `valid_o` signal is set high for one clock cycle indicating a valid data byte in `data_o`.
 
 The RTL diagram (Intel Quartus RTL Viewer) of the whole neoTRNG unit is shown below. The three green blocks are the entropy cells.
 
 ![top_rtl_view](https://raw.githubusercontent.com/stnolting/neoTRNG/main/img/neoTRNG_rtl.png)
-
-:warning: Keeping the neoTRNG _permanently enabled_ will increase dynamic power consumption and might also
-cause local heating of the FPGA chip. Of course this highly depends on the actual configuration of the TRNG.
 
 
 ## Evaluation
@@ -164,7 +160,7 @@ cause local heating of the FPGA chip. Of course this highly depends on the actua
 The neoTRNG is evaluated as part of the [NEORV32](https://github.com/stnolting/neorv32) processor. The setup was synthesized
 for an Intel Cyclone IV `EP4CE22F17C6N` FPGA running at 100MHz.
 For the evaluation a very small configuration has been selected that just implements three entropy cells.
-The first ring-oscillator (short path) uses 3 inverters, the second one uses 5 inverters and the last one uses 7 inverters.
+The first ring-oscillator (short paths) uses 3 inverters, the second one uses 5 inverters and the last one uses 7 inverters.
 The long paths of the ring-oscillators are 2 inverters longer than the according short paths.
 
 ```
@@ -174,7 +170,7 @@ NUM_INV_INC   = 2
 NUM_INV_DELAY = 2
 ```
 
-:warning: This analysis evaluates the **raw TRNG data** obtained directly from the neoTRNG module.
+:information_source: This analysis evaluates the **raw TRNG data** obtained directly from the neoTRNG module.
 No additional post-processing has been applied to the data at all.
 
 The NEORV32 test program used to sample and send random data via UART (at 115200 baud) to a host computer can be found in the
@@ -190,7 +186,7 @@ $ dd if=/dev/ttyS6 of=entropy.bin bs=1024 count=64k iflag=fullblock
 
 ### Entropy per Byte
 
-```bash
+```
 $ ent entropy.bin
 Entropy = 7.916196 bits per byte.
 
@@ -346,15 +342,15 @@ All tests are passed and only one test shows a "weak" assessment. Now that's a v
 
 The sampling logic of the neoTRNG samples random data in chunks of 8-bit. Since the randomness extractor uses
 2 non-overlapping bits a total number of 16 clock cycles is required to sample one final byte of random data.
-So the optimal and maximal output rate of the TRNG module is:
+So the maximal output rate of the TRNG module is **50Mbit/s**:
 
 ```
 100_000_000[cycles/s] / 16[cycles/8bit] = 50_000_000[bit/s] = 50[Mbit/s] = 47.68[Mibit/s]
 ```
 
 The randomness extractor only passes _valid_ bits to the sampling shift register. The amount of valid
-bits per cycle is not static as this is defined by the entropy of the entropy source. For a "real-world" application
-that was compile for a `rv32imc` CPU and optimized for size (`Os`) the average number of cycles required for
+bits per cycle is not static as this is defined entirely by the entropy source. For a "real-world" application
+that was executed on a `rv32imc` CPU and optimized for size (`Os`) the average number of cycles required for
 obtaining a random byte is 41 cycles (including C-overhead). This results in an average throughput of **19.5Mbit/s**:
 
 ```
@@ -365,7 +361,7 @@ obtaining a random byte is 41 cycles (including C-overhead). This results in an 
 
 Mapping results for the neoTRNG top entity and it's entropy cells wrapped in the NEORV32 TRNG module.
 
-##### Lattice ice40 UltraPlus iCE40UP5K-SG48I @24MHz
+##### Lattice ice40 UltraPlus `iCE40UP5K-SG48I` @24MHz
 
 ```
 Hierarchy                                                 Logic Cells   Logic Registers
@@ -376,7 +372,7 @@ neoTRNG_inst                                                  46  (7)           
   neoTRNG_cell_inst[2].neoTRNG_cell_inst_i                    17 (17)           18 (18)
 ```
 
-##### Intel Cyclone IV EP4CE22F17C6N @100MHz
+##### Intel Cyclone IV `EP4CE22F17C6N` @100MHz
 
 ```
 Hierarchy                                                 Logic Cells   Logic Registers
@@ -387,7 +383,7 @@ neoTRNG:neoTRNG_inst                                          65 (19)           
   neoTRNG_cell:\neoTRNG_cell_inst:2:neoTRNG_cell_inst_i       22 (22)           18 (18)
 ```
 
-##### Xilinx Artix-7 XC7A35TICSG324-1L @100MHz
+##### Xilinx Artix-7 `XC7A35TICSG324-1L` @100MHz
 
 ```
 Hierarchy                                                 Logic Cells   Logic Registers
@@ -397,8 +393,3 @@ neoTRNG_inst (neoTRNG)                                             42           
   neoTRNG_cell_inst[1].neoTRNG_cell_inst_i (neoTRNG_cell)          12                26
   neoTRNG_cell_inst[2].neoTRNG_cell_inst_i (neoTRNG_cell)          16                34
 ```
-
-
-## References
-
-* :construction: TODO
