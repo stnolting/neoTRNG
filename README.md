@@ -23,7 +23,7 @@ The neoTRNG provides a small and high-quality _true random number generator_ (TR
 and cross-coupled ring-oscillators. The architecture provides a technology-agnostic implementation that allows to
 synthesize the TRNG for _any_ FPGA platform.
 
-Note that the neoTRNG only provides a "random PHY" - an interface to the physical entropy source. Any kind of more
+Note that the neoTRNG only provides a "random _PHY_" - an interface to the raw physical entropy source. Any kind of more
 sophisticated post-processing like advanced whitening, health-monitoring or even tampering-detection should be
 implemented in the user logic or the application software.
 
@@ -107,7 +107,7 @@ for all cells.
 The selected local feedback is synchronized to the module's clock by two consecutive FFs to remove metastability in the final
 output. This final output is further processed by the [sampling unit](#Sampling-Unit).
 
-To avoid "locking" of any RO to a specific frequency, which would reduce entropy, the active chain length is modified
+To **avoid "locking"** of any RO to a specific frequency, which would reduce entropy, the active chain length is randomly modified
 during runtime by either selecting the _short_ chain or the _long_ chain. This is accomplished by **cross-coupling** all
 entropy cells. The synchronized random bit of cell `i` is used to control the chain length of the next cell `i+1`. At the end
 of the cell array this connection wraps around so the last cell (`i=NUM_CELLS-1`) controls the chain length of the first cell (`i=0`).
