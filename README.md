@@ -3,6 +3,7 @@
 **A Tiny and Platform-Independent True Random Number Generator for _any_ FPGA**
 
 [![License](https://img.shields.io/github/license/stnolting/neoTRNG)](https://github.com/stnolting/neoTRNG/blob/main/LICENSE)
+[![DOI](https://zenodo.org/badge/430418414.svg)](https://zenodo.org/badge/latestdoi/430418414)
 
 * [Introduction](#Introduction)
 * [Top Entity](#Top-Entity)
