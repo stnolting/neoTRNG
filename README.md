@@ -9,7 +9,8 @@
    * [Interface](#Interface)
 * [Theory of Operation](#Theory-of-Operation)
 * [Evaluation](#Evaluation)
-   * [Quality](#Quality)
+   * [Entropy per Byte](#Entropy-per-Byte)
+   * [Dieharder Battery of Random Tests](#Dieharder-Battery-of-Random-Tests)
    * [Throughput](#Throughput)
    * [Hardware Utilization](#Hardware-Utilization)
 * [References](#References)
@@ -63,12 +64,12 @@ end neoTRNG;
 The neoTRNG uses a single clock domain driven by `clk_i`. This clock is also used to sample the entropy sources.
 
 The `valid_o` signal is set for one clock cycle indicating that `data_o` contains a valid random byte.
-It is the task of the user logic to sample `data_o` into a register when `valid_o` is asserted as it
+It is the task of the user logic to sample the module's data output into a register when `valid_o` is asserted as it
 is driven directly by the TRNG's sampling shift register logic.
 
 :information_source: The neoTRNG does not use a dedicated reset to keep the hardware requirements at a minimum
 (this might provide area-saving on some FPGAs). Instead, the `enable_i` signal is used to control operation and
-to reset all FFs. Before the TRNG is used, the `enable_i` should be kept low for at least some milliseconds to ensure
+to reset all FFs. Before the TRNG is used, this signal should be kept low for at least some milliseconds to ensure
 that all bits of the internal shift registers are cleared. As soon as `enable_i` is set and `valid_o` also becomes set
 for the first time the TRNG is operational.
 
@@ -87,7 +88,7 @@ implements a **long chain** oscillating at a "low" frequency. A multiplexer that
 signal select which chain is used as cell output and also as **local feedback** to drive both chain's inputs.
 
 The chain length of the _short_ chain is defined by `NUM_INV_START + i * NUM_INV_INC`, where `NUM_INV_START` defines
-the number of inverters in the very first cell (`i` = 0) and `NUM_INV_INC` defines the number of additional inverters
+the number of inverters in the very first cell (`i=0`) and `NUM_INV_INC` defines the number of additional inverters
 for each  further cell `i`. 
 
 The chain length of the _long_ chain is defined by `NUM_INV_START + i * NUM_INV_INC + NUM_INV_DELAY`. Here, `NUM_INV_DELAY`
@@ -102,7 +103,7 @@ during runtime by either selecting the _short_ chain or the _long_ chain. This i
 entropy cells. The synchronized random bit of cell `i` is used to control the chain length of the next cell `i+1`. At the end
 of the cell array this connection wraps around, so the last cell (`i=NUM_CELLS-1`) controls the chain length of the first cell (`i=0`).
 
-#### Implementation
+### Implementation
 
 Asynchronous elements like ring-oscillators are hard to implement on FPGAs as they normally require the use of device-specific
 primitives or attributes. In order to provide a technology-agnostic architecture, which can be synthesized for any FPGA and that
@@ -185,14 +186,9 @@ $ dd if=/dev/ttyS6 of=entropy.bin bs=1024 count=64k iflag=fullblock
 ```
 
 :floppy_disk: A total amount of **64MB** of random data has been sampled for this evaluation. The sampled data is available as
-`entropy.bin` binary file in the [release](https://github.com/stnolting/neoTRNG/releases) assets.
+"entropy.bin" binary file in the [release](https://github.com/stnolting/neoTRNG/releases) assets.
 
-### Quality
-
-Even though the "quality" of the generated random numbers is the most important metric it is also the hardest to evaluate.
-Therefore, widely-used standard tests have been applied to the raw random data.
-
-#### Entropy per byte (using `ent`)
+### Entropy per Byte
 
 ```bash
 $ ent entropy.bin
@@ -212,7 +208,7 @@ Serial correlation coefficient is 0.000763 (totally uncorrelated = 0.0).
 The average entropy per bit is not perfect but quite close to the optimum (8 bits per byte). This is caused by a small
 bias in the raw data that is also indicated by an arithmetic mean value slightly above 255/2.
 
-#### Dieharder battery of random tests
+### Dieharder Battery of Random Tests
 
 ```bash
 $ dieharder -a < entropy.bin
@@ -369,7 +365,7 @@ obtaining a random byte is 41 cycles (including C-overhead). This results in an 
 
 Mapping results for the neoTRNG top entity and it's entropy cells wrapped in the NEORV32 TRNG module.
 
-##### Lattice ice40 UltraPlus `iCE40UP5K-SG48I` @24MHz
+##### Lattice ice40 UltraPlus iCE40UP5K-SG48I @24MHz
 
 ```
 Hierarchy                                                 Logic Cells   Logic Registers
@@ -380,7 +376,7 @@ neoTRNG_inst                                                  46  (7)           
   neoTRNG_cell_inst[2].neoTRNG_cell_inst_i                    17 (17)           18 (18)
 ```
 
-##### Intel Cyclone IV `EP4CE22F17C6N` @100MHz
+##### Intel Cyclone IV EP4CE22F17C6N @100MHz
 
 ```
 Hierarchy                                                 Logic Cells   Logic Registers
@@ -391,7 +387,7 @@ neoTRNG:neoTRNG_inst                                          65 (19)           
   neoTRNG_cell:\neoTRNG_cell_inst:2:neoTRNG_cell_inst_i       22 (22)           18 (18)
 ```
 
-##### Xilinx Artix-7 `XC7A35TICSG324-1L` @100MHz
+##### Xilinx Artix-7 XC7A35TICSG324-1L @100MHz
 
 ```
 Hierarchy                                                 Logic Cells   Logic Registers
