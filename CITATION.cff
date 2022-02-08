@@ -1,0 +1,10 @@
+cff-version: 1.2.0
+message: "If you use this project, please cite it as below."
+authors:
+- family-names: "Nolting"
+  given-names: "Stephan"
+title: "The neoTRNG True Random Number Generator"
+version: 1.0.0
+doi: 10.5281/zenodo.5717502
+date-released: 2021-11-22
+url: "https://github.com/stnolting/neoTRNG"
