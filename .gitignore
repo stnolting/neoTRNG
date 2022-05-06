@@ -6,3 +6,6 @@
 *.out
 *.hex
 *_image.vhd
+
+*.ghw
+*.cf
