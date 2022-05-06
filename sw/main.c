@@ -95,6 +95,14 @@ int main() {
     return 1;
   }
 
+
+  // check if TRNG is using simulation mode
+  if (neorv32_trng_check_sim_mode() != 0) {
+    neorv32_uart0_printf("WARNING! TRNG uses simulation-only mode implementing a pseudo-RNG (LFSR)\n");
+    neorv32_uart0_printf("         instead of the physical entropy sources!\n");
+  }
+
+
   // start TRNG and print average sample time
   neorv32_uart0_printf("Starting TRNG...\n");
   neorv32_trng_enable(); // enable TRNG
