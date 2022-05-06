@@ -40,73 +40,14 @@
 /**********************************************************************//**
  * User configuration
  **************************************************************************/
-#define BAUD_RATE_STD   19200 // initial UART baud rate
-#define BAUD_RATE_FAST 115200 // fast UART baud rate
+#define UART0_BAUD 19200 // console
+#define UART1_BAUD 2000000 // data output
 
 
 /**********************************************************************//**
- * Prototypes
+ * Get average number of clock cycles required to get a single random byte
  **************************************************************************/
-uint8_t get_rnd(void);
-uint32_t average_access_time(void);
-
-
-/**********************************************************************//**
- * Main function
- **************************************************************************/
-int main() {
-
-  // initialize the neorv32 runtime environment
-  // this will take care of handling all CPU traps (interrupts and exceptions)
-  neorv32_rte_setup();
-
-  // setup UART0 at default baud rate, no parity bits, ho hw flow control
-  neorv32_uart0_setup(BAUD_RATE_STD, PARITY_NONE, FLOW_CONTROL_RTSCTS);
-
-  neorv32_uart0_printf("neoTRNG TEST\n");
-  neorv32_uart0_printf("build: "__DATE__" "__TIME__"\n");
-
-  // check if TRNG unit is implemented at all
-  if (neorv32_trng_available() == 0) {
-    neorv32_uart0_printf("No TRNG implemented.");
-    return 1;
-  }
-
-  neorv32_trng_enable(); // enable TRNG
-
-  neorv32_uart0_printf("Average TRNG system access time: %u cycles @ %uMHz\n", average_access_time(), NEORV32_SYSINFO.CLK);
-
-  neorv32_uart0_printf("Going to %u Baud and starting output in 20s.\n", (uint32_t)BAUD_RATE_FAST);
-  while (neorv32_uart0_tx_busy());
-  neorv32_uart0_setup(BAUD_RATE_FAST, PARITY_NONE, FLOW_CONTROL_RTSCTS);
-
-  neorv32_cpu_delay_ms(20000); // use this time to "warm-up" TRNG
-
-  while(1) {
-    neorv32_uart0_putc((char)get_rnd());
-  }
-
-  return 0;
-}
-
-
-/**********************************************************************//**
- * Get raw random byte
- **************************************************************************/
-uint8_t get_rnd(void) {
-
-  uint8_t raw;
-
-  while(neorv32_trng_get(&raw));
-
-  return raw;
-}
-
-
-/**********************************************************************//**
- * Get average number of clock cycles required to get random byte
- **************************************************************************/
-uint32_t average_access_time(void) {
+uint32_t get_avg_sample_time(void) {
 
   int i;
   const uint32_t runs = 4096;
@@ -119,4 +60,68 @@ uint32_t average_access_time(void) {
   }
 
   return neorv32_cpu_csr_read(CSR_MCYCLE)/runs;
+}
+
+
+/**********************************************************************//**
+ * Main function
+ **************************************************************************/
+int main() {
+
+  // initialize the neorv32 runtime environment
+  // this will take care of handling all CPU traps (interrupts and exceptions)
+  neorv32_rte_setup();
+
+
+  // setup console UART
+  if (neorv32_uart0_available() == 0) {
+    return 1;
+  }
+  neorv32_uart0_setup(UART0_BAUD, PARITY_NONE, FLOW_CONTROL_NONE);
+  neorv32_uart0_printf("neoTRNG V2 - Test Program\n\n");
+
+
+  // setup data output UART
+  if (neorv32_uart1_available() == 0) {
+    neorv32_uart0_printf("ERROR! UART1 not synthesized!\n");
+    return 1;
+  }
+  neorv32_uart1_setup(UART1_BAUD, PARITY_NONE, FLOW_CONTROL_CTS);
+
+
+  // TRNG available?
+  if (neorv32_trng_available() == 0) {
+    neorv32_uart0_printf("ERROR! TRNG not synthesized!\n");
+    return 1;
+  }
+
+  // start TRNG and print average sample time
+  neorv32_uart0_printf("Starting TRNG...\n");
+  neorv32_trng_enable(); // enable TRNG
+  neorv32_cpu_delay_ms(2000); // warm-up TRNG
+  uint32_t tmp_clock = NEORV32_SYSINFO.CLK;
+  uint32_t tmp_cycles = get_avg_sample_time();
+  neorv32_uart0_printf("Average throughput: %u bytes/s (%u cycles/byte @ %u MHz)\n", tmp_clock/tmp_cycles, tmp_cycles, tmp_clock);
+
+  neorv32_uart0_printf("Starting RND data stream (UART1, CTS flow-control)...\n");
+
+  // stream loop
+  uint32_t rnd = 0;
+  while(1) {
+
+    // wait for free space in UART1 TX buffer
+    while ((NEORV32_UART1.CTRL & (1 << UART_CTRL_TX_FULL)));
+
+    // wait for valid random data
+    rnd = 0;
+    do {
+      rnd = NEORV32_TRNG.CTRL;
+    } while ((rnd & (1 << TRNG_CTRL_VALID)) == 0); // valid?
+
+    // send data (lowest 8-bit)
+    NEORV32_UART1.DATA = rnd;
+  }
+
+  neorv32_uart0_printf("done\n");
+  return 0;
 }
