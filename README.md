@@ -19,15 +19,11 @@ The neoTRNG provides a small and high-quality _true random number generator_ (TR
 and cross-coupled ring-oscillators. The architecture provides a technology-agnostic implementation that allows to
 synthesize the TRNG for _any_ FPGA platform.
 
-Note that the neoTRNG only provides "raw" random data from it's physical entropy source. Any kind of more
-sophisticated post-processing, health-monitoring or even tampering-detection should be implemented as additional
-user logic or as part of the application software.
-
 :information_source: This project is a "spin-off" project of the
 [NEORV32 RISC-V Processor](https://github.com/stnolting/neorv32),
 where the neoTRNG is implemented as a default processor SoC module.
 
-:loudspeaker: Feedback from the community is highly appreciated!
+**:loudspeaker: Feedback from the community is highly appreciated!**
 
 **Key features**
 
@@ -154,8 +150,8 @@ As previously described, each LUT implements an inverting latch using four input
 
 * `DATAD`: latch reset driven by global enable signal
 * `DATAC`: latch enable signal (to make the latch transparent) driven by the enable shift register
-* `DATAA`: output of the previous latch to form the actual _ring_ oscillator
 * `DATAB`: latch-internal state feedback
+* `DATAA`: output of the previous latch to form the actual _ring_ oscillator
 
 ![cell_map_view](https://raw.githubusercontent.com/stnolting/neoTRNG/main/img/neoTRNG_cell_inst0_map.png)
 
@@ -379,3 +375,5 @@ on Hardware-Oriented Security and Trust. IEEE, 2008.
 Informacije Midem 44.4 (2014): 296-302.
 * Brown, Robert G., Dirk Eddelbuettel, and David Bauer. "Dieharder." Duke University Physics Department Durham,
 NC (2018): 27708-0305.
+
+[[back to top](#game_die-neoTRNG---V2)]
