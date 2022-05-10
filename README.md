@@ -331,7 +331,7 @@ via the simulator console. The testbench can be simulated by GHDL using the prov
 neoTRNG/sim$ sh ghdl.sh
 ../rtl/neoTRNG.vhd:134:3:@0ms:(assertion note): << neoTRNG V2 - A Tiny and Platform-Independent True Random Number Generator for any FPGA >>
 ../rtl/neoTRNG.vhd:135:3:@0ms:(assertion note): neoTRNG note: Post-processing enabled.
-../rtl/neoTRNG.vhd:136:3:@0ms:(assertion warning): neoTRNG warning: Simulation mode (PRNG!) enabled!
+../rtl/neoTRNG.vhd:136:3:@0ms:(assertion warning): neoTRNG WARNING: Simulation mode (PRNG!) enabled!
 ../rtl/neoTRNG.vhd:440:5:@0ms:(assertion warning): neoTRNG WARNING: Implementing simulation-only PRNG (LFSR)!
 ../rtl/neoTRNG.vhd:440:5:@0ms:(assertion warning): neoTRNG WARNING: Implementing simulation-only PRNG (LFSR)!
 ../rtl/neoTRNG.vhd:440:5:@0ms:(assertion warning): neoTRNG WARNING: Implementing simulation-only PRNG (LFSR)!
