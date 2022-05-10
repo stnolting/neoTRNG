@@ -264,11 +264,17 @@ rngtest: Program run time: 5650707 microseconds
 
 #### Dieharder Battery of Random Tests
 
-:information_source: From the dieharder manual: "_generators 201 or 202 permit either raw binary or formatted ASCII
+For the dieharder tests no data file was sampled before running the tests. Instead, the random data was
+passed directly to dieharder (from the serial UART port), but even at 2M baud this takes a lot of time...
+Excerpt from the dieharder manual: "_generators 201 or 202 permit either raw binary or formatted ASCII
 numbers to be read in from a file for testing. generator 200 reads in raw binary numbers from stdin. Note well:
 many tests with default parameters require a lot of rands!_"
 
 **:construction: Work in progress.**
+
+```
+$ dieharder -a -g 201 -f /dev/ttyS4
+```
 
 
 ### Throughput
