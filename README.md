@@ -15,16 +15,17 @@
 
 ## Introduction
 
-The neoTRNG aims to be a small and platform-agnostic _"true"_ random number generator (TRNG) that uses the _phase noise_
-of free-running and cross-coupled ring-oscillators as entropy source. It is intended to provide general purpose applications
-with random numbers of "good" quality (whatever that means..., see section [Evaluation](#Evaluation)). This project is a
-"spin-off" project of the [NEORV32 RISC-V Processor](https://github.com/stnolting/neorv32), where the neoTRNG is implemented
-as a default processor SoC module.
+The neoTRNG aims to be a small and **platform-agnostic** _"true"_ random number generator (TRNG), which can be
+synthesized for _any_ FPGA,  that uses the _phase noise_ of free-running and cross-coupled ring-oscillators as
+entropy source. It is intended to provide general purpose applications with random numbers of "good" quality
+(whatever that means..., see section [Evaluation](#Evaluation)). This project is a "spin-off" project of the
+[NEORV32 RISC-V Processor](https://github.com/stnolting/neorv32), where the neoTRNG is implemented as a default
+processor SoC module.
 
-:warning: **WARNING! It is very likely that there will be at least _some_ cross correlations to signal activities from other
-parts of the FPGA or even chip-external events. Hence, there is no guarantee at all the neoTRNG provides _perfect_ or
-_cryptographically secure_ random numbers! Furthermore, there is no tampering detection mechanism available to check
-the integrity of the provided random numbers!**
+:warning: **WARNING! It is very likely that there will be at least _some_ cross correlations between signal
+activities from other parts of the FPGA or even chip-external events and the neoTRNG results. Hence, there is
+no guarantee at all the neoTRNG provides _perfect_ or _cryptographically secure_ random numbers! Furthermore,
+there is no tampering detection mechanism available to check the integrity of the provided random numbers!**
 
 :loudspeaker: Feedback from the community is highly appreciated!
 
