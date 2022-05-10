@@ -15,22 +15,24 @@
 
 ## Introduction
 
-The neoTRNG provides a small and high-quality _true random number generator_ (TRNG) that is based on free-running
-and cross-coupled ring-oscillators. The architecture provides a technology-agnostic implementation that allows to
-synthesize the TRNG for _any_ FPGA platform.
+The neoTRNG aims to be a small and platform-agnostic _"true"_ random number generator (TRNG) that uses the _phase noise_
+of free-running and cross-coupled ring-oscillators as entropy source. It is intended to provide general purpose applications
+with random numbers of "good" quality (whatever that means..., see section [Evaluation](#Evaluation)). This project is a
+"spin-off" project of the [NEORV32 RISC-V Processor](https://github.com/stnolting/neorv32), where the neoTRNG is implemented
+as a default processor SoC module.
 
-:information_source: This project is a "spin-off" project of the
-[NEORV32 RISC-V Processor](https://github.com/stnolting/neorv32),
-where the neoTRNG is implemented as a default processor SoC module.
+:warning: **WARNING! It is very likely that there will be at least _some_ cross correlations to signal activities from other
+parts of the FPGA or even chip-external events. Hence, there is no guarantee at all the neoTRNG provides _perfect_ or
+_cryptographically secure_ random numbers! Furthermore, there is no tampering detection mechanism available to check
+the integrity of the provided random numbers!**
 
-**:loudspeaker: Feedback from the community is highly appreciated!**
+:loudspeaker: Feedback from the community is highly appreciated!
 
 **Key features**
 
-* [x] high quality random numbers
-* [x] high throughput
-* [x] tiny hardware footprint (less than 100 LUTs!)
-* [x] technology, vendor and platform agnostic
+* [x] technology, vendor and platform agnostic - can be synthesized for any FPGA
+* [x] tiny hardware footprint (less than 100 LUTs)
+* [x] good throughput (for a TRNG)
 * [x] easy to use, simple integration
 
 [[back to top](#game_die-neoTRNG---V2)]
@@ -189,10 +191,10 @@ but at the cost of additional hardware resources and increased latency.
 The neoTRNG is evaluated as part of the [NEORV32](https://github.com/stnolting/neorv32) processor, where the neoTRNG is
 available as standard SoC module. The processor was synthesized for an Intel Cyclone IV `EP4CE22F17C6N` FPGA running at 100MHz.
 
-For the evaluation a very small configuration has been selected that just implements three entropy cells. The first
+For the evaluation **a very very small configuration** has been selected that just implements three entropy cells. The first
 RO (short paths) uses 5 inverters, the second one uses 7 inverters and the last one uses 9 inverters. The long
 paths of the ROs are 2 inverters longer than the according short paths. The evaluation setup also uses the
-internal post-processing module.
+internal post-processing module. More complex configurations (with more entropy cells) might provide "better" random quality.
 
 ```
 NUM_CELLS     = 3
@@ -262,7 +264,11 @@ rngtest: Program run time: 5650707 microseconds
 
 #### Dieharder Battery of Random Tests
 
-:construction: Work in progress.
+:information_source: From the dieharder manual: "_generators 201 or 202 permit either raw binary or formatted ASCII
+numbers to be read in from a file for testing. generator 200 reads in raw binary numbers from stdin. Note well:
+many tests with default parameters require a lot of rands!_"
+
+**:construction: Work in progress.**
 
 
 ### Throughput
