@@ -84,10 +84,14 @@ cause local heating of the FPGA chip. Of course this highly depends on the actua
 
 ## Theory of Operation
 
-The neoTRNG is based on a configurable number of technology-agnostic ["entropy cells"](#Entropy-Cells). The
-sampling of free-running ring oscillators is used as the actual source of entropy. The number of implemented
-cells is defined by the `NUM_CELLS` generic. The final random data is de-serialized by the
-["Sampling Unit"](#Sampling-Unit) and optionally [post-processed](#Post-Processing) to improve whitening.
+The neoTRNG is based on a configurable number of technology-agnostic ["entropy cells"](#Entropy-Cells). Each cell
+consists of a switchable _ring oscillator_ that provides a "fast oscillation mode" (using a short ring oscillator chain)
+and a "slow oscillation mode" (using a long ring oscillator chain). The actual mode, which defined the output of the cell,
+is defined by the output of either the previous cell's output or the next following cell's output. The output of the very
+last cell is sampled by a shift register. This is the point where the entropy is gathered by [sampling](#Sampling-Unit)
+the phase noise of the output state of the last cell's output. An optional [post-processing logic](#Post-Processing)
+can be enabled to improve whitening and thus, random number quality.
+
 
 ### Entropy Cells
 
