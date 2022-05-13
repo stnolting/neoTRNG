@@ -25,10 +25,10 @@ processor SoC module.
 This is an ongoing research project. Feedback from the community (for example regarding any kind of
 optimization proposals) is highly appreciated! :wink:
 
-**:warning: WARNING! :warning:** It is very likely that there will be at least _some_ cross correlations between signal
+**:warning: WARNING! :warning: It is very likely that there will be at least _some_ cross correlations between signal
 activities from other parts of the FPGA or even chip-external events and the neoTRNG results. Hence, there is
 no guarantee at all the neoTRNG provides _perfect_ or even _cryptographically secure_ random numbers! Furthermore,
-there is no tampering detection mechanism available yet to check the integrity of the provided random numbers!
+there is no tampering detection mechanism available yet to check the integrity of the provided random numbers!**
 
 **Key features**
 
@@ -159,7 +159,7 @@ As previously described, each LUT implements an inverting latch using four input
 * `DATAD`: latch reset driven by global enable signal
 * `DATAC`: latch enable signal (to make the latch transparent) driven by the enable shift register
 * `DATAB`: latch-internal state feedback
-* `DATAA`: output of the previous latch to form the actual _ring_ oscillator
+* `DATAA`: output of the previous latch to form the actual ring oscillator (= chain of inverters / inverting latches)
 
 ![cell_map_view](https://raw.githubusercontent.com/stnolting/neoTRNG/main/img/neoTRNG_cell_inst0_map.png)
 
