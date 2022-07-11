@@ -4,6 +4,8 @@
 
 [![License](https://img.shields.io/github/license/stnolting/neoTRNG)](https://github.com/stnolting/neoTRNG/blob/main/LICENSE)
 [![DOI](https://zenodo.org/badge/430418414.svg)](https://zenodo.org/badge/latestdoi/430418414)
+[![Gitter](https://img.shields.io/badge/Chat-on%20gitter-4db797.svg?longCache=true&logo=gitter&logoColor=e8ecef)](https://gitter.im/neorv32/community)
+
 
 * [Introduction](#Introduction)
 * [Top Entity](#Top-Entity)
