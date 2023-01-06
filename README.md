@@ -32,12 +32,16 @@ activities from other parts of the FPGA or even chip-external events and the neo
 no guarantee at all the neoTRNG provides _perfect_ or even _cryptographically secure_ random numbers! Furthermore,
 there is no tampering detection mechanism available yet to check the integrity of the provided random numbers!**
 
-**Key features**
+**Key Features**
 
-* [x] technology, vendor and platform agnostic - can be synthesized for any FPGA
-* [x] tiny hardware footprint (less than 100 LUTs)
+* [x] technology, vendor and platform agnostic - can be synthesized for **any** FPGA
+* [x] tiny hardware footprint (less than 100 LUTs for the standard configuration)
 * [x] high throughput (for a TRNG)
 * [x] easy to use, simple integration
+
+**TODOs**
+
+* [ ] online health monitoring (according to NIST SP 800-90B)
 
 [[back to top](#game_die-neoTRNG---V2)]
 
@@ -61,6 +65,7 @@ entity neoTRNG is
   );
   port (
     clk_i    : in  std_ulogic; -- global clock line
+    rstn_i   : in  std_ulogic; -- global reset line, low-active, async, optional
     enable_i : in  std_ulogic; -- unit enable (high-active), reset unit when low
     data_o   : out std_ulogic_vector(7 downto 0); -- random data byte output
     valid_o  : out std_ulogic  -- data_o is valid when set
@@ -74,11 +79,10 @@ The neoTRNG uses a single clock domain driven by `clk_i`. This clock is also use
 The `valid_o` signal indicates that `data_o` contains a valid random byte. It is the task of the user logic to
 _sample_ the module's data output into a register or buffer as `valid_o` is high for only one cycle.
 
-:information_source: The neoTRNG does not use a dedicated reset to keep the hardware requirements at a minimum
-(might provide area-savings on some FPGAs). Instead, the `enable_i` signal is used to control operation and
-to reset all (relevant) FFs. Before the TRNG is used, this signal should be kept low for at least some 1000
-clock cycles to ensure that all bits of the internal shift registers are cleared. As soon as `enable_i` is set
-and `valid_o` also becomes set for the first time the TRNG is operational.
+:information_source: The neoTRNG reset signal `rstn_i` is **optional** (tie to `'1'` if not used). The `enable_i`
+signal is used to control operation and also to reset all (relevant) FFs. Before the TRNG is used, this signal
+should be kept low for at least some 1000 clock cycles to ensure that all bits of the internal shift registers
+are cleared. As soon as `enable_i` is set and `valid_o` also becomes set for the first time the TRNG is operational.
 
 :warning: Keeping the neoTRNG _permanently enabled_ will increase dynamic power consumption and might also
 cause local heating of the FPGA chip. Of course this highly depends on the actual configuration of the TRNG.
@@ -105,7 +109,7 @@ second RO features `NUM_INV_INC` additional inverters implementing a **long chai
 frequency. A multiplexer that is controlled by a cell-external signal selects which chain is used as cell output.
 The selected output is also used as _local feedback_ to drive both chain's inputs.
 
-The length (= number of inverters) of the **shor**_ chain is defined by `NUM_INV_START + i * NUM_INV_INC`, where
+The length (= number of inverters) of the **short**_ chain is defined by `NUM_INV_START + i * NUM_INV_INC`, where
 `NUM_INV_START` defines the number of inverters in the very first cell (`i=0`) in cell `i`. `NUM_INV_INC` defines
 the number of additional inverters for each further cell. 
 
@@ -187,7 +191,7 @@ available when 8 edges have been sampled.
 
 The neoTRNG provides an _optional_ post-processing logic that aims to improve the quality of the random data (whitening).
 When enabled (`POST_PROC_EN` = true) the post-processing logic takes 8 _raw_ random data bytes from the sampling unit and
-_combines_ them. For this, the raw samples are right-rotated by one position and summed-up to "combine/mixs" each bit of the raw
+_combines_ them. For this, the raw samples are right-rotated by one position and summed-up to "combine/mix" each bit of the raw
 64-bit with any other bit. Evaluations show that this post-processing can increase the entropy of the final random data
 but at the cost of additional hardware resources and increased latency.
 
@@ -272,10 +276,10 @@ rngtest: Program run time: 5650707 microseconds
 
 #### Dieharder Battery of Random Tests
 
-For the dieharder tests no data file was sampled before running the tests. Instead, the random data was
-passed directly to dieharder (from the serial UART port), but even at 2M baud this takes a lot of time...
-Excerpt from the dieharder manual: "_generators 201 or 202 permit either raw binary or formatted ASCII
-numbers to be read in from a file for testing. generator 200 reads in raw binary numbers from stdin. Note well:
+For the Dieharder tests no data file was sampled before running the tests. Instead, the random data was
+passed directly to Dieharder (from the serial UART port), but even at 2M baud this takes a lot of time...
+Excerpt from the Dieharder manual: "_generators 201 or 202 permit either raw binary or formatted ASCII
+numbers to be read in from a file for testing. generator 200 reads in raw binary numbers from STDIN. Note well:
 many tests with default parameters require a lot of rands!_"
 
 **:construction: Work in progress.**
