@@ -27,10 +27,11 @@ processor SoC module.
 This is an ongoing research project. Feedback from the community (for example regarding any kind of
 optimization proposals) is highly appreciated! :wink:
 
-**:warning: WARNING! :warning: It is very likely that there will be at least _some_ cross correlations between signal
+**:warning: WARNING! :warning:** It is possible that there will be at least _some_ cross correlations between signal
 activities from other parts of the FPGA or even chip-external events and the neoTRNG results. Hence, there is
 no guarantee at all the neoTRNG provides _perfect_ or even _cryptographically secure_ random numbers! Furthermore,
-there is no tampering detection mechanism available yet to check the integrity of the provided random numbers!**
+there is no tampering detection mechanism / online health monitoring available yet to check the integrity of the
+provided random numbers!
 
 **Key Features**
 
