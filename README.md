@@ -325,7 +325,7 @@ neoTRNG:neoTRNG_inst                                          86 (41)           
 
 Since the asynchronous ring-oscillators cannot be rtl-simulated (at least not with common simulators), the
 neoTRNG module provides a dedicated simulation option that is enabled by the `IS_SIM` generic. When enabled,
-the entropy sources (= ring-oscillators) are replaced by a **pseudo random number generator** (LFSRs).
+the entropy sources (= ring-oscillators) are replaced by a **pseudo random number generator** (10-bit LFSRs).
 
 :warning: The simulation mode is intended for simulation/debugging only! Synthesized setups with enabled
 simulation mode will **not** generate _true_ random numbers!!
