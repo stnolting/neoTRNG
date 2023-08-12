@@ -5,12 +5,12 @@
 [![License](https://img.shields.io/github/license/stnolting/neoTRNG)](https://github.com/stnolting/neoTRNG/blob/main/LICENSE)
 [![DOI](https://zenodo.org/badge/430418414.svg)](https://zenodo.org/badge/latestdoi/430418414)
 
-* [Introduction](#Introduction)
-* [Top Entity](#Top-Entity)
-* [Theory of Operation](#Theory-of-Operation)
-* [Evaluation](#Evaluation)
-* [References](#References)
-* [Simulation](#Simulating-the-neoTRNG)
+* [Introduction](#introduction)
+* [Top Entity](#top-entity)
+* [Theory of Operation](#theory-of-operation)
+* [Evaluation](#evaluation)
+* [References](#references)
+* [Simulation](#simulating-the-neotrng)
 
 
 ## Introduction
@@ -18,7 +18,7 @@
 The neoTRNG aims to be a small and **platform-agnostic** _"true"_ random number generator (TRNG), which can be
 synthesized for _any_ FPGA,  that uses the _phase noise_ of free-running and cross-coupled ring-oscillators as
 entropy source. It is intended to provide general purpose applications with random numbers of "good" quality
-(whatever that means..., see section [Evaluation](#Evaluation)). This project is a "spin-off" project of the
+(whatever that means..., see section [Evaluation](#evaluation)). This project is a "spin-off" project of the
 [NEORV32 RISC-V Processor](https://github.com/stnolting/neorv32), where the neoTRNG is implemented as a default
 processor SoC module.
 
@@ -41,6 +41,8 @@ provided random numbers!
 **TODOs**
 
 * [ ] online health monitoring (according to NIST SP 800-90B)
+
+[[back to top](#game_die-neotrng---v2)]
 
 
 ## Top Entity
@@ -84,15 +86,17 @@ are cleared. As soon as `enable_i` is set and `valid_o` also becomes set for the
 :warning: Keeping the neoTRNG _permanently enabled_ will increase dynamic power consumption and might also
 cause local heating of the FPGA chip. Of course this highly depends on the actual configuration of the TRNG.
 
+[[back to top](#game_die-neotrng---v2)]
+
 
 ## Theory of Operation
 
-The neoTRNG is based on a configurable number of technology-agnostic ["entropy cells"](#Entropy-Cells). Each cell
+The neoTRNG is based on a configurable number of technology-agnostic ["entropy cells"](#entropy-cells). Each cell
 consists of a switchable _ring oscillator_ that provides a "fast oscillation mode" (using a short ring oscillator chain)
 and a "slow oscillation mode" (using a long ring oscillator chain). The actual mode, which defined the output of the cell,
 is defined by the output of either the previous cell's output or the next following cell's output. The output of the very
-last cell is sampled by a shift register. This is the point where the entropy is gathered by [sampling](#Sampling-Unit)
-the phase noise of the output state of the last cell's output. An optional [post-processing logic](#Post-Processing)
+last cell is sampled by a shift register. This is the point where the entropy is gathered by [sampling](#sampling-unit)
+the phase noise of the output state of the last cell's output. An optional [post-processing logic](#post-processing)
 can be enabled to improve whitening and thus, random number quality.
 
 
@@ -121,6 +125,8 @@ switch the **connection mode** of the entropy cells:
 
 * if FF is zero, the output of cell `i` is used to select the path length of cell `i+1` (wrapping around); this is the "forward mode"
 * if FF is one, the output of cell `i+1` is used to select the path length of cell `i` (wrapping around); this is the "reverse mode"
+
+[[back to top](#game_die-neotrng---v2)]
 
 
 ### Entropy Cells - Implementation
@@ -162,6 +168,8 @@ As previously described, each LUT implements an inverting latch using four input
 
 ![cell_map_view](https://raw.githubusercontent.com/stnolting/neoTRNG/main/img/neoTRNG_cell_inst0_map.png)
 
+[[back to top](#game_die-neotrng---v2)]
+
 
 ### Sampling Unit
 
@@ -175,6 +183,8 @@ If a rising edge is detected (`01`) a `0` is sampled by the final data byte shif
 If no edge is detected, the data sampling shift register and the bit counter stay unaffected. A final random data sample is
 available when 8 edges have been sampled.
 
+[[back to top](#game_die-neotrng---v2)]
+
 
 ### Post-Processing
 
@@ -183,6 +193,8 @@ When enabled (`POST_PROC_EN` = true) the post-processing logic takes 8 _raw_ ran
 _combines_ them. For this, the raw samples are right-rotated by one position and summed-up to "combine/mix" each bit of the raw
 64-bit with any other bit. Evaluations show that this post-processing can increase the entropy of the final random data
 but at the cost of additional hardware resources and increased latency.
+
+[[back to top](#game_die-neotrng---v2)]
 
 
 ## Evaluation
@@ -216,6 +228,8 @@ $ dd if=/dev/ttyS4 of=entropy.bin bs=1M count=64 iflag=fullblock
 
 :floppy_disk: A total amount of **64MB** of random data has been sampled for this evaluation. The sampled data is available as
 "entropy.bin" binary file in the [release](https://github.com/stnolting/neoTRNG/releases) assets.
+
+[[back to top](#game_die-neotrng---v2)]
 
 
 #### Entropy per Byte
@@ -284,6 +298,8 @@ If the internal post-processing logic is enabled, it will sample 8 raw bytes to 
 :information_source: The randomness extractor only passes _valid_ bits to the sampling shift register.
 The amount of valid bits per cycle is not static as this is defined entirely by the entropy source.
 
+[[back to top](#game_die-neotrng---v2)]
+
 
 ### Hardware Utilization
 
@@ -299,6 +315,8 @@ neoTRNG:neoTRNG_inst                                          86 (41)           
   neoTRNG_cell:\neoTRNG_cell_inst:1:neoTRNG_cell_inst_i       17 (17)           12 (12)
   neoTRNG_cell:\neoTRNG_cell_inst:2:neoTRNG_cell_inst_i       19 (19)           16 (16)
 ```
+
+[[back to top](#game_die-neotrng---v2)]
 
 
 ## Simulating the neoTRNG
@@ -370,6 +388,8 @@ The GHDL waveform data is stored to `sim/neoTRNG_tb.ghw` and can be viewed using
 neoTRNG/sim$ gtkwave neoTRNG_tb.ghw
 ```
 
+[[back to top](#game_die-neotrng---v2)]
+
 
 ## References
 
@@ -379,3 +399,5 @@ on Hardware-Oriented Security and Trust. IEEE, 2008.
 Informacije Midem 44.4 (2014): 296-302.
 * Brown, Robert G., Dirk Eddelbuettel, and David Bauer. "Dieharder." Duke University Physics Department Durham,
 NC (2018): 27708-0305.
+
+[[back to top](#game_die-neotrng---v2)]
