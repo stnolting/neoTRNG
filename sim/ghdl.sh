@@ -11,4 +11,4 @@ ghdl -e neoTRNG_tb
 
 # Run simulation
 ghdl -e neoTRNG_tb
-ghdl -r neoTRNG_tb --stop-time=200us --wave=neoTRNG_tb.ghw
+ghdl -r neoTRNG_tb --stop-time=100us --wave=neoTRNG_tb.ghw
