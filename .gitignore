@@ -1,11 +1,3 @@
-~*
-*.bin
-*.o
-*.elf
-*.asm
-*.out
-*.hex
-*_image.vhd
-
 *.ghw
 *.cf
+~*
