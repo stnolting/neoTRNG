@@ -190,6 +190,7 @@ begin
     end if;
   end process sampling_control;
 
+  -- TRNG output stream --
   data_o  <= sample_sreg;
   valid_o <= sample_cnt(sample_cnt'left);
 
@@ -315,7 +316,7 @@ begin
       elsif rising_edge(clk_i) then
         if (sreg(sreg'left) = '0') or (en_i = '0') then
           rosc <= (others => '0');
-        else
+        else -- sequence might NOT be maximum-length!
           rosc <= rosc(rosc'left-1 downto 0) & (rosc(rosc'left) xnor rosc(0));
         end if;
       end if;
