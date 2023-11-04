@@ -258,7 +258,7 @@ rngtest: Program run time: 330110 microseconds
 ```
 
 
-### dieharder
+### Dieharder Random Number Testsuite
 
 The dieharder random number testsuite ([wikipedia](https://en.wikipedia.org/wiki/Diehard_tests),
 [homepage](https://webhome.phy.duke.edu/~rgb/General/dieharder.php)) by Robert G. Brown is a great toolset
