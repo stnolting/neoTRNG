@@ -7,8 +7,8 @@
 [![DOI](https://zenodo.org/badge/430418414.svg)](https://zenodo.org/badge/latestdoi/430418414)
 
 * [Introduction](#introduction)
-* [Top Entity](#top-entity)
-* [Architecture](#architecture)
+* [Top Entity, Integration and Interface](#top-entity)
+* [Theory of Operation / Architecture](#architecture)
 * [Evaluation](#evaluation)
 * [Hardware Utilization](#hardware-utilization)
 * [Simulation](#simulation)
@@ -27,12 +27,14 @@ the neoTRNG is implemented as default SoC module.
 
 **Key Features**
 
-* [x] full-digital design
 * [x] technology, vendor and platform/technology independent - can be synthesized for **any** platform
 * [x] tiny hardware footprint (less than 100 LUT4s/FFs for the standard configuration)
 * [x] high throughput (for a physical TRNG)
+* [x] fully open source with a [permissive license](https://github.com/stnolting/neoTRNG/blob/main/LICENSE)
+* [x] full-digital design; single-file VHDL module without any dependencies
 * [x] very high operating frequency to ease timing closure
 * [x] easy to use / simple integration
+* [x] full documentation down to rtl level + evaluation
 
 **:warning: WARNING** It is possible that there will be at least _some_ cross correlations between external
 signals/events and the generate random numbers. Hence, there is no guarantee at all that the neoTRNG provides
@@ -254,6 +256,20 @@ rngtest: input channel speed: (min=138.214; avg=1557.190; max=2119.276)Mibits/s
 rngtest: FIPS tests speed: (min=32.660; avg=106.337; max=111.541)Mibits/s
 rngtest: Program run time: 330110 microseconds
 ```
+
+
+### dieharder
+
+The dieharder random number testsuite ([wikipedia](https://en.wikipedia.org/wiki/Diehard_tests),
+[homepage](https://webhome.phy.duke.edu/~rgb/General/dieharder.php)) by Robert G. Brown is a great toolset
+to stress-test and characterize random number generators.
+
+**:construction: work in progress :construction:**
+
+However, dieharder needs a large set of random samples (something around 4GB). Otherwise, the random data
+is _rewind_ obviously reducing overall entropy. Right now I am using a simple UART connection to transfer
+data from a FPGA to the PC. But even a higher Baud rates a data set of 4GB would take _ages_ to send.
+Until I have a better transfer channel (or just a lot of time) this evaluation is _"work in progress"_.
 
 
 ### Hardware Utilization
