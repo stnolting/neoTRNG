@@ -208,8 +208,8 @@ Arithmetic mean:   127 (optimum would be 127)
 
 Histogram occurrence
 Average:      16384 (optimum would be 4194304/256 = 16384)
-Min:          16051 = average - 333 at bin 183 (optimum would be 0)
-Max:          16706 = average + 322 at bin 144 (optimum would be 0)
+Min:          16051 = average - 333 (deviation) at bin 183 (optimum deviation would be 0)
+Max:          16706 = average + 322 (deviation) at bin 144 (optimum deviation would be 0)
 Average dev.: +/- 96 (optimum would be 0)
 ```
 
