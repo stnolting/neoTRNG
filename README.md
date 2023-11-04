@@ -290,8 +290,9 @@ The neoTRNG's maximum generation rate is defined by two factors:
 * B = 64: number of raw random bits required by the sampling unit to generate one random byte
 
 Hence, the neoTRNG requires at least `A * B = 2 * 64 = 128` clock cycles to emit one random byte.
-Evaluation have show that the actual sampling time is around ~200 clock cycles. Thus, an implementation
-running at 100 MHz can generate up to 500kB of random data per second.
+FPGA evaluation has shown that the actual sampling time is around 280 clock cycles. Thus, an
+implementation running at 100 MHz can generate approximately ~350kB of random data per second.
+Higher generation rates can be achieved by running several neoTRNG instances in parallel.
 
 [[back to top](#the-neotrng-true-random-number-generator)]
 
