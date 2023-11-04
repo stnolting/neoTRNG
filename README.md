@@ -1,6 +1,6 @@
 # The neoTRNG True Random Number Generator
 
-**A Tiny and Platform-Independent True Random Number Generator for _any_ FPGA.**
+**A Tiny and Platform-Independent True Random Number Generator for _any_ FPGA (and even ASICs).**
 
 [![Release](https://img.shields.io/github/v/release/stnolting/neoTRNG)](https://github.com/stnolting/neoTRNG/releases)
 [![License](https://img.shields.io/github/license/stnolting/neoTRNG)](https://github.com/stnolting/neoTRNG/blob/main/LICENSE)
@@ -27,7 +27,8 @@ the neoTRNG is implemented as default SoC module.
 
 **Key Features**
 
-* [x] technology, vendor and platform/technology independent - can be synthesized for **any** FPGA (and even ASICs!)
+* [x] full-digital design
+* [x] technology, vendor and platform/technology independent - can be synthesized for **any** platform
 * [x] tiny hardware footprint (less than 100 LUT4s/FFs for the standard configuration)
 * [x] high throughput (for a physical TRNG)
 * [x] very high operating frequency to ease timing closure
