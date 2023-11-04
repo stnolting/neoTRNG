@@ -22,7 +22,7 @@ can be synthesized for _any_ target technology (FPGAs and even ASICs). It is bas
 ring-oscillators, which are enhanced by a _special technique_ in order to allow synthesis for any platform.
 The _phase noise_ that occurs when sampling free-running ring-oscillators is used as physical entropy source.
 
-This project is a "spin-off" from the [NEORV32 RISC-V Processors](https://github.com/stnolting/neorv32) where
+This project is a "spin-off" from the [NEORV32 RISC-V Processor](https://github.com/stnolting/neorv32) where
 the neoTRNG is implemented as default SoC module.
 
 **Key Features**
