@@ -11,14 +11,14 @@ architecture neoTRNG_tb_rtl of neoTRNG_tb is
   -- dut --
   component neoTRNG
     generic (
-      NUM_CELLS     : natural := 3; -- total number of ring-oscillator cells
-      NUM_INV_START : natural := 5; -- number of inverters in first cell (short path), has to be odd
-      SIM_MODE      : boolean := false -- for simulation only!
+      NUM_CELLS     : natural := 3;    -- number of ring-oscillator cells
+      NUM_INV_START : natural := 5;    -- number of inverters in first cell, has to be odd
+      SIM_MODE      : boolean := false -- enable simulation mode (use pseudo-RNG)
     );
     port (
-      clk_i    : in  std_ulogic; -- global clock line
-      rstn_i   : in  std_ulogic; -- global reset line, low-active, async, optional
-      enable_i : in  std_ulogic; -- unit enable (high-active), reset unit when low
+      clk_i    : in  std_ulogic; -- module clock
+      rstn_i   : in  std_ulogic; -- module reset, low-active, async, optional
+      enable_i : in  std_ulogic; -- module enable (high-active)
       data_o   : out std_ulogic_vector(7 downto 0); -- random data byte output
       valid_o  : out std_ulogic  -- data_o is valid when set
     );
@@ -27,7 +27,7 @@ architecture neoTRNG_tb_rtl of neoTRNG_tb is
   -- generators --
   signal clk_gen, rstn_gen, en_gen : std_ulogic := '0';
 
-  -- data output --
+  -- interface --
   signal rnd_valid : std_ulogic;
   signal rnd_data  : std_ulogic_vector(7 downto 0);
 
@@ -41,8 +41,8 @@ begin
   -- dut --
   neoTRNG_inst: neoTRNG
   generic map (
-    NUM_CELLS     => 3,   -- total number of ring-oscillator cells
-    NUM_INV_START => 5,   -- number of inverters in first cell (short path), has to be odd
+    NUM_CELLS     => 3,
+    NUM_INV_START => 5,
     SIM_MODE      => true -- this is a simulation
   )
   port map (
@@ -55,13 +55,13 @@ begin
 
   -- console output --
   console_output : process(clk_gen)
-    file output : text open write_mode is "STD_OUTPUT";
-    variable buf_v : line;
+    file     output : text open write_mode is "STD_OUTPUT";
+    variable line_v : line;
   begin
     if rising_edge(clk_gen) then
       if (rnd_valid = '1') then
-        write(buf_v, integer'image(to_integer(unsigned(rnd_data))));
-        writeline(output, buf_v);
+        write(line_v, integer'image(to_integer(unsigned(rnd_data))));
+        writeline(output, line_v);
       end if;
     end if;
   end process console_output;
