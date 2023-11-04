@@ -103,9 +103,9 @@ entropy source.
 
 Each entropy cell generates a 1-bit stream of random data. The outputs of all cells are mixed using a wide
 XOR gate before the stream is [de-biased](#de-biasing) by a simple randomness extractor. Several de-biased
-bits are sampled / de-serialized by a [shift register](#sampling-unit) to provide byte-wide random number.
-This shift register also recombines the bits in the stream in order to improve the spectral distribution
-of the random numbers.
+bits are sampled / de-serialized by the [sampling unit](#sampling-unit) to provide byte-wide random number.
+The sampling unit also applies a simple post-processing in order to improve the spectral distribution of
+the random numbers.
 
 
 ### Entropy Cells
@@ -200,17 +200,17 @@ its statistical properties:
 * arithmetic mean of all sampled random bytes
 * average occurrence across all bit patterns
 * min and max occurrences and deviation from the average occurrence
-* integer numbers only
 
 ```
+[NOTE] integer numbers only
 Number of samples: 4194304
-Arithmetic mean:   127
+Arithmetic mean:   127 (optimum would be 127)
 
 Histogram occurrence
-Average:      16384
-Min:          16051 = average - 333 at bin 183
-Max:          16706 = average + 322 at bin 144
-Average dev.: +/- 96
+Average:      16384 (optimum would be 4194304/256 = 16384)
+Min:          16051 = average - 333 at bin 183 (optimum would be 0)
+Max:          16706 = average + 322 at bin 144 (optimum would be 0)
+Average dev.: +/- 96 (optimum would be 0)
 ```
 
 
