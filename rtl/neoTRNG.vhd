@@ -243,6 +243,7 @@ end neoTRNG_rtl;
 
 library ieee;
 use ieee.std_logic_1164.all;
+use std.textio.all;
 
 entity neoTRNG_cell is
   generic (
@@ -278,7 +279,7 @@ begin
 
     assert false report
       "[neoTRNG NOTE] Implementing physical entropy cell with " &
-      integer'image(NUM_INV) & " inverters." severity note;
+      natural'image(NUM_INV) & " inverters." severity note;
 
     -- ring oscillator --
     ring_osc:
