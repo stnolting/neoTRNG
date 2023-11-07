@@ -315,11 +315,11 @@ begin
       if (rstn_i = '0') then
         rosc <= (others => '0');
       elsif rising_edge(clk_i) then
-        if (sreg(sreg'left) = '0') or (en_i = '0') then
+        if (en_i = '0') then
           rosc <= (others => '0');
         else -- sequence might NOT be maximum-length!
           rosc(rosc'left downto 1) <= rosc(rosc'left-1 downto 0);
-          rosc(0) <= rosc(rosc'left) xnor rosc(0);
+          rosc(0) <= not (rosc(NUM_INV-1) xor rosc(0));
         end if;
       end if;
     end process sim_lfsr;
