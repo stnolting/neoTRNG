@@ -278,7 +278,7 @@ begin
 
     assert false report
       "[neoTRNG NOTE] Implementing physical entropy cell with " &
-      natural'image(NUM_INV) & " inverters." severity note;
+      integer'image(NUM_INV) & " inverters." severity note;
 
     -- ring oscillator --
     ring_osc:
