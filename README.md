@@ -36,12 +36,14 @@ the neoTRNG is implemented as default SoC module.
 * [x] easy to use / simple integration
 * [x] full documentation down to rtl level + evaluation
 
-**:warning: WARNING** It is possible that there will be at least _some_ cross correlations between external
+> [!WARNING]
+> It is possible that there will be at least _some_ cross correlations between external
 signals/events and the generate random numbers. Hence, there is no guarantee at all that the neoTRNG provides
 perfect or cryptographically secure random numbers. Furthermore, there is no tampering detection mechanism or
 online health monitoring available yet to check the integrity of the generated random data.
 
-**:warning: WARNING** Keeping the neoTRNG _permanently enabled_ will increase dynamic power consumption and
+> [!WARNING]
+> Keeping the neoTRNG _permanently enabled_ will increase dynamic power consumption and
 might also cause local heating of the chip (when using very large configurations). Furthermore, additional
 electromagnetic interference (EMI) might be emitted by the design.
 
@@ -171,8 +173,6 @@ XORs the input stream with the last bit of the register to further scramble the 
 
 ![neoTRNG sampling unit](https://raw.githubusercontent.com/stnolting/neoTRNG/main/img/neotrng_sampling_unit.png)
 
-[[back to top](#the-neotrng-true-random-number-generator)]
-
 
 ## Evaluation
 
@@ -189,7 +189,8 @@ NUM_INV_START = 5
 SIM_MODE      = false
 ```
 
-:floppy_disk: A total amount of **4MB** of random data has been obtained for the evaluations. This data set is
+> [!NOTE]
+> A total amount of **4MB** of random data has been obtained for the evaluations. This data set is
 available as `entropy.bin` binary file in the [release](https://github.com/stnolting/neoTRNG/releases) assets.
 
 
@@ -288,7 +289,8 @@ neoTRNG:neoTRNG_inst                                      56 (27)            46 
   neoTRNG_cell:\entropy_source:2:neoTRNG_cell_inst        14 (14)            11 (11)
 ```
 
-:information_source: Synthesis tools might emit a warning that latches and combinatorial loops
+> [!NOTE]
+> Synthesis tools might emit a warning that latches and combinatorial loops
 have been detected. However, this is no design flaw as this is exactly what we want. :wink:
 
 
@@ -304,8 +306,6 @@ FPGA evaluation has shown that the actual sampling time is around 280 clock cycl
 implementation running at 100 MHz can generate approximately ~350kB of random data per second.
 Higher generation rates can be achieved by running several neoTRNG instances in parallel.
 
-[[back to top](#the-neotrng-true-random-number-generator)]
-
 
 ## Simulation
 
@@ -314,7 +314,8 @@ simulation mode that is enabled by the `SIM_MODE` generic. When enabled, the phy
 replaced by a **pseudo random number generator** implemented as plain LFSRs. During synthesis and simulation
 several asserts will be printed to inform the user that simulation mode is enabled (see below).
 
-**:warning: WARNING** The simulation mode is intended for simulation/debugging only! Synthesized setups
+> [!WARNING]
+> The simulation mode is intended for simulation/debugging only! Synthesized setups
 with enabled simulation mode will **not** generate TRUE random numbers!
 
 The [`sim`](https://github.com/stnolting/neoTRNG/sim) folder of this repository provides a simple testbench
@@ -355,9 +356,6 @@ The GHDL waveform data is stored to `sim/neoTRNG_tb.ghw` and can be viewed using
 ```
 neoTRNG/sim$ gtkwave neoTRNG_tb.ghw
 ```
-
-[[back to top](#the-neotrng-true-random-number-generator)]
-
 
 ## References
 
