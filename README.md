@@ -36,11 +36,12 @@ the neoTRNG is implemented as default SoC module.
 * [x] easy to use / simple integration
 * [x] full documentation down to rtl level + evaluation
 
-> [!WARNING]
-> It is possible that there will be at least _some_ cross correlations between external
-signals/events and the generate random numbers. Hence, there is no guarantee at all that the neoTRNG provides
-perfect or cryptographically secure random numbers. Furthermore, there is no tampering detection mechanism or
-online health monitoring available yet to check the integrity of the generated random data.
+> [!CAUTION]
+> It is possible that there might be at least _some_ cross correlations between internal/external
+signals/events and the generated random numbers. Hence, there is **no guarantee at all** the neoTRNG provides
+_perfect or even cryptographically secure_ random numbers! See the provided evaluation results or (even better)
+test it by yourself. Furthermore, there is no tampering detection mechanism or
+online health monitoring available yet to check for integrity/quality of the generated random data.
 
 > [!WARNING]
 > Keeping the neoTRNG _permanently enabled_ will increase dynamic power consumption and
@@ -70,7 +71,6 @@ entity neoTRNG is
   );
 end neoTRNG;
 ```
-
 
 ### Interface and Configuration
 
@@ -266,9 +266,10 @@ The dieharder random number testsuite ([wikipedia](https://en.wikipedia.org/wiki
 [homepage](https://webhome.phy.duke.edu/~rgb/General/dieharder.php)) by Robert G. Brown is a great toolset
 to stress-test and characterize random number generators.
 
-**:construction: work in progress :construction:**
-
-However, dieharder needs a large set of random samples (something around 4GB). Otherwise, the random data
+> [!IMPORTANT]
+> **:construction: work in progress :construction:**
+> 
+> The dieharder needs a large set of random samples (something around 4GB). Otherwise, the random data
 is _rewind_ obviously reducing overall entropy. Right now I am using a simple UART connection to transfer
 data from a FPGA to the PC. But even a higher Baud rates a data set of 4GB would take _ages_ to send.
 Until I have a better transfer channel (or just a lot of time) this evaluation is _"work in progress"_.
