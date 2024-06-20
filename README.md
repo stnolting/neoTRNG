@@ -155,7 +155,7 @@ to check a non-overlapping pair of bits for _edges_.
 ![neoTRNG de-biasing](https://raw.githubusercontent.com/stnolting/neoTRNG/main/img/neotrng_debiasing.png)
 
 Whenever an edge has been detected a "valid" signal is send to the following sampling unit. A rising-edge
-(`01`) emits a `1` data bit and a falling-edge (`10`) emits a `1` data bit. Hence, the de-biasing unit
+(`01`) emits a `1` data bit and a falling-edge (`10`) emits a `0` data bit. Hence, the de-biasing unit
 requires at least two clock cycles to generate a single random bit. If no edge is detected (`00` or `11`)
 the valid signal remains low and the sampling unit halts.
 
