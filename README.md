@@ -302,9 +302,9 @@ The neoTRNG's maximum generation rate is defined by two factors:
 * A = 2: cycles required by the de-biasing logic to output one raw random bit
 * B = 64: number of raw random bits required by the sampling unit to generate one random byte
 
-Hence, the neoTRNG requires at least `A * B = 2 * 64 = 128` clock cycles to emit one random byte.
-FPGA evaluation has shown that the actual sampling time is around 280 clock cycles. Thus, an
-implementation running at 100 MHz can generate approximately ~350kB of random data per second.
+Hence, the neoTRNG requires _at least_ `A * B = 2 * 64 = 128` clock cycles to emit one random byte.
+FPGA evaluation has shown that the actual sampling time is around 300 clock cycles. Thus, an
+implementation running at 100 MHz can generate approximately 330kB of random data per second.
 Higher generation rates can be achieved by running several neoTRNG instances in parallel.
 
 
@@ -323,7 +323,7 @@ simulator console. The testbench can be simulated with GHDL by using the provide
 
 ```
 neoTRNG/sim$ sh ghdl.sh
-../rtl/neoTRNG.vhd:104:3:@0ms:(assertion note): [neoTRNG] neoTRNG v4 - A Tiny and Platform-Independent True Random Number Generator, https://github.com/stnolting/neoTRNG
+../rtl/neoTRNG.vhd:104:3:@0ms:(assertion note): [neoTRNG] neoTRNG v3.1 - A Tiny and Platform-Independent True Random Number Generator, https://github.com/stnolting/neoTRNG
 ../rtl/neoTRNG.vhd:114:3:@0ms:(assertion warning): [neoTRNG] Simulation-mode enabled!
 4
 127
