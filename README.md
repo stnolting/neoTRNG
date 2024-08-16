@@ -59,8 +59,8 @@ has no dependencies like special libraries, packages or submodules.
 entity neoTRNG is
   generic (
     NUM_CELLS     : natural := 3;    -- number of ring-oscillator cells
-    NUM_INV_START : natural := 5;    -- number of inverters in first cell, has to be odd
-    SIM_MODE      : boolean := false -- enable simulation mode (use pseudo-RNG)
+    NUM_INV_START : natural := 5;    -- number of inverters in first cell, has to be odd, min 3
+    SIM_MODE      : boolean := false -- enable simulation mode (adding explicit propagation delay)
   );
   port (
     clk_i    : in  std_ulogic; -- module clock
@@ -169,7 +169,7 @@ distribution of the obtained random samples.
 In order to generate one byte of random data the sampling unit reset its internal shift register to all-zero
 and starts consuming in 64 bits of the de-biased random stream. The shift register is implemented as
 _linear-feedback shift register_ ([LFSR](https://en.wikipedia.org/wiki/Linear-feedback_shift_register)) that
-XORs the input stream with the last bit of the register to further scramble the random bitstream.
+XORs the input stream with the last bit of the register to further scramble and mix the random bitstream.
 
 ![neoTRNG sampling unit](https://raw.githubusercontent.com/stnolting/neoTRNG/main/img/neotrng_sampling_unit.png)
 
@@ -269,7 +269,7 @@ to stress-test and characterize random number generators.
 > [!IMPORTANT]
 > **:construction: work in progress :construction:**
 > 
-> The dieharder needs a large set of random samples (something around 4GB). Otherwise, the random data
+> dieharder needs a large set of random samples (something around 4GB). Otherwise, the random data
 is _rewind_ obviously reducing overall entropy. Right now I am using a simple UART connection to transfer
 data from a FPGA to the PC. But even a higher Baud rates a data set of 4GB would take _ages_ to send.
 Until I have a better transfer channel (or just a lot of time) this evaluation is _"work in progress"_.
@@ -310,45 +310,38 @@ Higher generation rates can be achieved by running several neoTRNG instances in 
 
 ## Simulation
 
-Since the asynchronous ring-oscillators cannot be rtl-simulated, the neoTRNG module provides a dedicated
-simulation mode that is enabled by the `SIM_MODE` generic. When enabled, the physical entropy sources are
-replaced by a **pseudo random number generator** implemented as plain LFSRs. During synthesis and simulation
-several asserts will be printed to inform the user that simulation mode is enabled (see below).
+Since the asynchronous ring-oscillators cannot be rtl-simulated (due to the combinatorial loops), the neoTRNG
+provides a dedicated simulation mode that is enabled by the `SIM_MODE` generic. When enabled, an explicit propagation
+delay is added to the ring-oscillator's inverters (i.e. `after 2 ns`).
 
-> [!WARNING]
-> The simulation mode is intended for simulation/debugging only! Synthesized setups
-with enabled simulation mode will **not** generate TRUE random numbers!
+> [!IMPORTANT]
+> The simulation mode is intended for simulation/debugging only! Designs with SIM_MODE enabled cannot be synthesized!
 
-The [`sim`](https://github.com/stnolting/neoTRNG/sim) folder of this repository provides a simple testbench
-for the neoTRNG using the default configuration. The testbench will output the obtained pseudo-random bytes
-as decimal values via the simulator console. The testbench can be simulated with GHDL by using the provided
-script:
+The [`sim`](https://github.com/stnolting/neoTRNG/sim) folder provides a simple testbench for the neoTRNG using
+the default configuration. The testbench will output the obtained random data bytes as decimal values to the
+simulator console. The testbench can be simulated with GHDL by using the provided script:
 
 ```
 neoTRNG/sim$ sh ghdl.sh
-../rtl/neoTRNG.vhd:103:3:@0ms:(assertion note): [neoTRNG NOTE] << neoTRNG V3 - A Tiny and Platform-Independent True Random Number Generator >>
-../rtl/neoTRNG.vhd:308:5:@0ms:(assertion warning): [neoTRNG WARNING] Implementing non-physical pseudo-RNG!
-../rtl/neoTRNG.vhd:308:5:@0ms:(assertion warning): [neoTRNG WARNING] Implementing non-physical pseudo-RNG!
-../rtl/neoTRNG.vhd:308:5:@0ms:(assertion warning): [neoTRNG WARNING] Implementing non-physical pseudo-RNG!
-72
-57
-216
-69
-216
-146
-10
-216
-162
-188
-230
-243
-157
-37
-12
-104
-124
-159
-180
+../rtl/neoTRNG.vhd:104:3:@0ms:(assertion note): [neoTRNG] neoTRNG v4 - A Tiny and Platform-Independent True Random Number Generator, https://github.com/stnolting/neoTRNG
+../rtl/neoTRNG.vhd:114:3:@0ms:(assertion warning): [neoTRNG] Simulation-mode enabled!
+4
+127
+226
+0
+71
+254
+32
+4
+127
+226
+0
+71
+254
+32
+4
+127
+226
 ghdl:info: simulation stopped by --stop-time @100us
 ```
 
