@@ -11,16 +11,16 @@ architecture neoTRNG_tb_rtl of neoTRNG_tb is
   -- dut --
   component neoTRNG
     generic (
-      NUM_CELLS     : natural := 3;    -- number of ring-oscillator cells
-      NUM_INV_START : natural := 5;    -- number of inverters in first cell, has to be odd
-      SIM_MODE      : boolean := false -- enable simulation mode (use pseudo-RNG)
+      NUM_CELLS     : natural := 3;
+      NUM_INV_START : natural := 5;
+      SIM_MODE      : boolean := false
     );
     port (
-      clk_i    : in  std_ulogic; -- module clock
-      rstn_i   : in  std_ulogic; -- module reset, low-active, async, optional
-      enable_i : in  std_ulogic; -- module enable (high-active)
-      data_o   : out std_ulogic_vector(7 downto 0); -- random data byte output
-      valid_o  : out std_ulogic  -- data_o is valid when set
+      clk_i    : in  std_ulogic;
+      rstn_i   : in  std_ulogic;
+      enable_i : in  std_ulogic;
+      data_o   : out std_ulogic_vector(7 downto 0);
+      valid_o  : out std_ulogic
     );
   end component;
 
@@ -35,7 +35,7 @@ begin
 
   -- generators --
   clk_gen  <= not clk_gen after 10 ns;
-  rstn_gen <= '0', '1' after 60 ns;
+  rstn_gen <= '0', '1' after 25 ns;
   en_gen   <= '0', '1' after 100 ns;
 
   -- dut --
@@ -43,7 +43,7 @@ begin
   generic map (
     NUM_CELLS     => 3,
     NUM_INV_START => 5,
-    SIM_MODE      => true -- this is a simulation
+    SIM_MODE      => true -- this is a simulation!
   )
   port map (
     clk_i    => clk_gen,
@@ -65,6 +65,5 @@ begin
       end if;
     end if;
   end process console_output;
-
 
 end neoTRNG_tb_rtl;
