@@ -2,6 +2,7 @@
 
 **A Tiny and Platform-Independent True Random Number Generator for _any_ FPGA (and even ASICs).**
 
+[![neoTRNG simulation](https://github.com/stnolting/neoTRNG/actions/workflows/main.yml/badge.svg)](https://github.com/stnolting/neoTRNG/actions/workflows/main.yml)
 [![Release](https://img.shields.io/github/v/release/stnolting/neoTRNG)](https://github.com/stnolting/neoTRNG/releases)
 [![License](https://img.shields.io/github/license/stnolting/neoTRNG)](https://github.com/stnolting/neoTRNG/blob/main/LICENSE)
 [![DOI](https://zenodo.org/badge/430418414.svg)](https://zenodo.org/badge/latestdoi/430418414)
@@ -346,6 +347,9 @@ The GHDL waveform data is stored to `sim/neoTRNG_tb.ghw` and can be viewed using
 ```
 neoTRNG/sim$ gtkwave neoTRNG_tb.ghw
 ```
+
+A simple simulation run is executed by the project's
+[`neoTRNG-sim` GitHub action workflow](https://github.com/stnolting/neoTRNG/actions).
 
 ## References
 
