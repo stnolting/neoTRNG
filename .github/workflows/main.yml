@@ -1,0 +1,27 @@
+name: neoTRNG simulation
+
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+
+  neoTRNG-sim:
+    runs-on: ubuntu-latest
+
+    steps:
+
+    - name: '📂 Repository checkout'
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        submodules: recursive
+
+    - name: '📦 Install GHDL'
+      uses: ghdl/setup-ghdl-ci@nightly
+
+    - name: '🔍 Check tools'
+      run: ghdl -v
+
+    - name: '⚙️ Run neoTRNG simulation'
+      run: /bin/bash -c "chmod u+x $GITHUB_WORKSPACE/sim/ghdl.sh && $GITHUB_WORKSPACE/sim/ghdl.sh"
