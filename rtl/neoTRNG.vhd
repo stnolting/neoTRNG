@@ -1,5 +1,5 @@
 -- #################################################################################################
--- # neoTRNG - A Tiny and Platform-Independent True Random Number Generator (version 3.2)          #
+-- # neoTRNG - A Tiny and Platform-Independent True Random Number Generator (Version 3.2)          #
 -- # https://github.com/stnolting/neoTRNG                                                          #
 -- # ********************************************************************************************* #
 -- # The neoTNG true-random number generator samples free-running ring-oscillators (combinatorial  #
@@ -51,16 +51,16 @@ use ieee.numeric_std.all;
 
 entity neoTRNG is
   generic (
-    NUM_CELLS     : natural := 3;    -- number of ring-oscillator cells
-    NUM_INV_START : natural := 5;    -- number of inverters in first ring-oscillator cell, has to be odd
-    SIM_MODE      : boolean := false -- enable simulation mode (adding explicit propagation delay)
+    NUM_CELLS     : natural range 1 to 99 := 3; -- number of ring-oscillator cells
+    NUM_INV_START : natural range 3 to 99 := 5; -- number of inverters in first ring-oscillator cell, has to be odd
+    SIM_MODE      : boolean := false -- enable simulation mode (no physical random if enabled!)
   );
   port (
     clk_i    : in  std_ulogic; -- module clock
     rstn_i   : in  std_ulogic; -- module reset, low-active, async, optional
     enable_i : in  std_ulogic; -- module enable (high-active)
-    data_o   : out std_ulogic_vector(7 downto 0); -- random data byte output
-    valid_o  : out std_ulogic  -- data_o is valid when set
+    valid_o  : out std_ulogic; -- data_o is valid when set (high for one cycle)
+    data_o   : out std_ulogic_vector(7 downto 0) -- random data byte output
   );
 end neoTRNG;
 
@@ -69,8 +69,8 @@ architecture neoTRNG_rtl of neoTRNG is
   -- entropy source cell --
   component neoTRNG_cell
     generic (
-      NUM_INV  : natural := 3;    -- number of inverters, has to be odd, min 3
-      SIM_MODE : boolean := false -- enable simulation mode (adding explicit propagation delay)
+      NUM_INV  : natural range 3 to 999 := 3; -- number of inverters, has to be odd, min 3
+      SIM_MODE : boolean := false -- enable simulation mode (no physical random if enabled!)
     );
     port (
       clk_i  : in  std_ulogic; -- clock
@@ -85,7 +85,7 @@ architecture neoTRNG_rtl of neoTRNG is
   signal cell_en_in   : std_ulogic_vector(NUM_CELLS-1 downto 0); -- enable-sreg input
   signal cell_en_out  : std_ulogic_vector(NUM_CELLS-1 downto 0); -- enable-sreg output
   signal cell_rnd     : std_ulogic_vector(NUM_CELLS-1 downto 0); -- cell random output
-  signal rnd_raw      : std_ulogic; -- combined raw random data
+  signal cell_sum     : std_ulogic; -- combined random data
 
   -- de-biasing --
   signal debias_sreg  : std_ulogic_vector(1 downto 0); -- sample buffer
@@ -109,11 +109,8 @@ begin
   assert (NUM_INV_START mod 2) /= 0 report
     "[neoTRNG] Number of inverters in first cell <NUM_INV_START> has to be odd!" severity error;
 
-  assert NUM_INV_START >= 3 report
-    "[neoTRNG] Number of inverters in first cell <NUM_INV_START> has to be at least 3!" severity error;
-
   assert not SIM_MODE report
-    "[neoTRNG] Simulation-mode enabled!" severity warning;
+    "[neoTRNG] Simulation-mode enabled (NO TRUE/PHYSICAL RANDOM)!" severity warning;
 
 
   -- Entropy Source -------------------------------------------------------------------------
@@ -146,7 +143,7 @@ begin
     for i in 0 to NUM_CELLS-1 loop
       tmp_v := tmp_v xor cell_rnd(i);
     end loop;
-    rnd_raw <= tmp_v;
+    cell_sum <= tmp_v;
   end process combine;
 
 
@@ -158,7 +155,7 @@ begin
       debias_sreg  <= (others => '0');
       debias_state <= '0';
     elsif rising_edge(clk_i) then
-      debias_sreg <= debias_sreg(0) & rnd_raw;
+      debias_sreg <= debias_sreg(0) & cell_sum;
       -- start operation when last cell is enabled and process in every second cycle --
       debias_state <= (not debias_state) and cell_en_out(cell_en_out'left);
     end if;
@@ -195,11 +192,10 @@ begin
 
 end neoTRNG_rtl;
 
-
 -- **********************************************************************************************************
 -- neoTRNG entropy source cell, based on a simple ring-oscillator constructed from an odd number
 -- of inverter. The inverters are decoupled using individually-enabled latches to prevent synthesis
--- from removing parts of the oscillator chain.
+-- from "optimizing" (=removing) parts of the oscillator chain.
 -- **********************************************************************************************************
 
 library ieee;
@@ -207,8 +203,8 @@ use ieee.std_logic_1164.all;
 
 entity neoTRNG_cell is
   generic (
-    NUM_INV  : natural := 3;    -- number of inverters, has to be odd, min 3
-    SIM_MODE : boolean := false -- enable simulation mode (adding explicit propagation delay)
+    NUM_INV  : natural range 3 to 999 := 3; -- number of inverters, has to be odd, min 3
+    SIM_MODE : boolean := false -- enable simulation mode (no physical random if enabled!)
   );
   port (
     clk_i  : in  std_ulogic; -- clock
@@ -276,7 +272,7 @@ begin
 
   end generate;
 
-  -- interconnect --
+  -- chaining --
   inv_in(0) <= latch(NUM_INV-1); -- beginning/end of chain
   inv_in(NUM_INV-1 downto 1) <= latch(NUM_INV-2 downto 0); -- inside chain
 
