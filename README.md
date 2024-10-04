@@ -1,4 +1,4 @@
-# The neoTRNG True Random Number Generator
+# The neoTRNG True Random Number Generator - Version 3.2
 
 **A Tiny and Platform-Independent True Random Number Generator for _any_ FPGA (and even ASICs).**
 
@@ -51,23 +51,23 @@ electromagnetic interference (EMI) might be emitted by the design.
 
 ## Top Entity
 
-The whole design is based on a single VHDL file
-([`rtl/neoTRNG.vhd`](https://github.com/stnolting/neoTRNG/blob/main/rtl/neoTRNG.vhd)) that
-has no dependencies like special libraries, packages or submodules.
+The whole design is implemented as a single VHDL file
+[`rtl/neoTRNG.vhd`](https://github.com/stnolting/neoTRNG/blob/main/rtl/neoTRNG.vhd) that
+has no dependencies at all (like special libraries, packages or submodules).
 
 ```vhdl
 entity neoTRNG is
   generic (
-    NUM_CELLS     : natural := 3;    -- number of ring-oscillator cells
-    NUM_INV_START : natural := 5;    -- number of inverters in first cell, has to be odd, min 3
-    SIM_MODE      : boolean := false -- enable simulation mode (adding explicit propagation delay)
+    NUM_CELLS     : natural range 1 to 99 := 3; -- number of ring-oscillator cells
+    NUM_INV_START : natural range 3 to 99 := 5; -- number of inverters in first cell, has to be odd
+    SIM_MODE      : boolean := false -- enable simulation mode (no physical random if enabled!)
   );
   port (
     clk_i    : in  std_ulogic; -- module clock
     rstn_i   : in  std_ulogic; -- module reset, low-active, async, optional
     enable_i : in  std_ulogic; -- module enable (high-active)
-    data_o   : out std_ulogic_vector(7 downto 0); -- random data byte output
-    valid_o  : out std_ulogic  -- data_o is valid when set
+    valid_o  : out std_ulogic; -- data_o is valid when set (high for one cycle)
+    data_o   : out std_ulogic_vector(7 downto 0) -- random data byte output
   );
 end neoTRNG;
 ```
@@ -310,38 +310,34 @@ Higher generation rates can be achieved by running several neoTRNG instances in 
 
 ## Simulation
 
-Since the asynchronous ring-oscillators cannot be rtl-simulated (due to the combinatorial loops), the neoTRNG
-provides a dedicated simulation mode that is enabled by the `SIM_MODE` generic. When enabled, an explicit propagation
-delay is added to the ring-oscillator's inverters (i.e. `after 2 ns`).
+Since the asynchronous ring-oscillators cannot be rtl-simulated (due to the combinatorial loops), the
+neoTRNG provides a dedicated simulation mode that is enabled by the `SIM_MODE` generic. When enabled,
+a "propagation delay" implemented as simple flip flop is added to the ring-oscillator's inverters.
 
 > [!IMPORTANT]
-> The simulation mode is intended for simulation/debugging only! Designs with SIM_MODE enabled cannot be synthesized!
+> The simulation mode is intended for simulation/debugging only!
+> Designs with `SIM_MODE` enabled can be synthesized but will **not provide any true/physical random** numbers at all!
 
-The [`sim`](https://github.com/stnolting/neoTRNG/sim) folder provides a simple testbench for the neoTRNG using
-the default configuration. The testbench will output the obtained random data bytes as decimal values to the
-simulator console. The testbench can be simulated with GHDL by using the provided script:
+The [`sim`](https://github.com/stnolting/neoTRNG/sim) folder provides a simple testbench for the neoTRNG
+using the default configuration. The testbench will output the obtained random data bytes as decimal
+values to the simulator console. The testbench can be simulated with GHDL by using the provided script:
 
 ```
 neoTRNG/sim$ sh ghdl.sh
-../rtl/neoTRNG.vhd:104:3:@0ms:(assertion note): [neoTRNG] neoTRNG v3.1 - A Tiny and Platform-Independent True Random Number Generator, https://github.com/stnolting/neoTRNG
-../rtl/neoTRNG.vhd:114:3:@0ms:(assertion warning): [neoTRNG] Simulation-mode enabled!
-4
-127
-226
-0
-71
-254
-32
-4
-127
-226
-0
-71
-254
-32
-4
-127
-226
+../rtl/neoTRNG.vhd:105:3:@0ms:(assertion note): [neoTRNG] The neoTRNG (v3.2) - A Tiny and Platform-Independent True Random Number Generator, https://github.com/stnolting/neoTRNG
+../rtl/neoTRNG.vhd:112:3:@0ms:(assertion warning): [neoTRNG] Simulation-mode enabled (NO TRUE/PHYSICAL RANDOM)!
+18
+210
+147
+5
+79
+94
+70
+100
+185
+246
+203
+220
 ghdl:info: simulation stopped by --stop-time @100us
 ```
 
