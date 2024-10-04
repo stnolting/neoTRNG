@@ -8,19 +8,19 @@ end neoTRNG_tb;
 
 architecture neoTRNG_tb_rtl of neoTRNG_tb is
 
-  -- dut --
+  -- dut: neoTRNG --
   component neoTRNG
     generic (
-      NUM_CELLS     : natural := 3;
-      NUM_INV_START : natural := 5;
+      NUM_CELLS     : natural range 1 to 99 := 3;
+      NUM_INV_START : natural range 3 to 99 := 5;
       SIM_MODE      : boolean := false
     );
     port (
       clk_i    : in  std_ulogic;
       rstn_i   : in  std_ulogic;
       enable_i : in  std_ulogic;
-      data_o   : out std_ulogic_vector(7 downto 0);
-      valid_o  : out std_ulogic
+      valid_o  : out std_ulogic;
+      data_o   : out std_ulogic_vector(7 downto 0)
     );
   end component;
 
@@ -49,8 +49,8 @@ begin
     clk_i    => clk_gen,
     rstn_i   => rstn_gen,
     enable_i => en_gen,
-    data_o   => rnd_data,
-    valid_o  => rnd_valid
+    valid_o  => rnd_valid,
+    data_o   => rnd_data
   );
 
   -- console output --
