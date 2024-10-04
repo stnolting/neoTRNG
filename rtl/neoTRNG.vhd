@@ -1,5 +1,5 @@
 -- #################################################################################################
--- # neoTRNG - A Tiny and Platform-Independent True Random Number Generator (version 3.1)          #
+-- # neoTRNG - A Tiny and Platform-Independent True Random Number Generator (version 3.2)          #
 -- # https://github.com/stnolting/neoTRNG                                                          #
 -- # ********************************************************************************************* #
 -- # The neoTNG true-random number generator samples free-running ring-oscillators (combinatorial  #
@@ -66,7 +66,7 @@ end neoTRNG;
 
 architecture neoTRNG_rtl of neoTRNG is
 
-  -- entropy generator cell --
+  -- entropy source cell --
   component neoTRNG_cell
     generic (
       NUM_INV  : natural := 3;    -- number of inverters, has to be odd, min 3
@@ -103,7 +103,7 @@ begin
   -- Sanity Checks --------------------------------------------------------------------------
   -- -------------------------------------------------------------------------------------------
   assert false report
-    "[neoTRNG] The neoTRNG (v3.1) - A Tiny and Platform-Independent True Random Number Generator, " &
+    "[neoTRNG] The neoTRNG (v3.2) - A Tiny and Platform-Independent True Random Number Generator, " &
     "https://github.com/stnolting/neoTRNG" severity note;
 
   assert (NUM_INV_START mod 2) /= 0 report
@@ -116,7 +116,7 @@ begin
     "[neoTRNG] Simulation-mode enabled!" severity warning;
 
 
-  -- Entropy Source(s) ----------------------------------------------------------------------
+  -- Entropy Source -------------------------------------------------------------------------
   -- -------------------------------------------------------------------------------------------
   entropy_cell_gen:
   for i in 0 to NUM_CELLS-1 generate
@@ -198,8 +198,8 @@ end neoTRNG_rtl;
 
 -- **********************************************************************************************************
 -- neoTRNG entropy source cell, based on a simple ring-oscillator constructed from an odd number
--- of inverter. The inverters are decoupled using individually-enabled latches to prevent the
--- synthesis from removing parts of the oscillator chain.
+-- of inverter. The inverters are decoupled using individually-enabled latches to prevent synthesis
+-- from removing parts of the oscillator chain.
 -- **********************************************************************************************************
 
 library ieee;
@@ -262,16 +262,16 @@ begin
     -- latch with global reset and individual enable --
     latch(i) <= '0' when (en_i = '0') else latch(i) when (sreg(i) = '0') else inv_out(i);
 
-    -- inverter with simulated propagation delay --
+    -- inverter with "propagation delay" --
     inverter_sim:
     if SIM_MODE generate
-      inv_out(i) <= (not inv_in(i)) after 2 ns; -- for SIMULATION ONLY
+      inv_out(i) <= not inv_in(i) when rising_edge(clk_i); -- for SIMULATION ONLY
     end generate;
 
     -- inverter for actual synthesis --
     inverter_phy:
     if not SIM_MODE generate
-      inv_out(i) <= (not inv_in(i));
+      inv_out(i) <= not inv_in(i);
     end generate;
 
   end generate;
