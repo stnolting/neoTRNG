@@ -2,6 +2,15 @@ name: neoTRNG simulation
 
 on:
   push:
+    paths:
+    - 'rtl/**'
+    - 'sim/**'
+    - '.github/workflows/main.yml'
+  pull_request:
+    paths:
+    - 'rtl/**'
+    - 'sim/**'
+    - '.github/workflows/main.yml'
   workflow_dispatch:
 
 jobs:
