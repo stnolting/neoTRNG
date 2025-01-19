@@ -27,7 +27,10 @@ jobs:
         submodules: recursive
 
     - name: '📦 Install GHDL'
-      uses: ghdl/setup-ghdl-ci@nightly
+      uses: ghdl/setup-ghdl@v1
+      with:
+        version: nightly
+        backend: mcode
 
     - name: '🔍 Check tools'
       run: ghdl -v
