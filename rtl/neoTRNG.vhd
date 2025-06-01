@@ -1,49 +1,49 @@
--- #################################################################################################
--- # neoTRNG - A Tiny and Platform-Independent True Random Number Generator (Version 3.2)          #
--- # https://github.com/stnolting/neoTRNG                                                          #
--- # ********************************************************************************************* #
--- # The neoTNG true-random number generator samples free-running ring-oscillators (combinatorial  #
--- # loops) to obtain *phase noise* hat is used as entropy source. The individual ring-oscillators #
--- # are based on plain inverter chains that are decoupled using individually-enabled latches in   #
--- # order to prevent the synthesis tool from trimming parts of the logic.                         #
--- #                                                                                               #
--- # Hence, the TRNG provides a platform- agnostic architecture that can be implemented for any    #
--- # FPGA/ASIC without requiring primitive instantiation or technology-specific attributes or      #
--- # platform-specific synthesis options.                                                          #
--- #                                                                                               #
--- # The random output from each entropy cells is synchronized and XOR-ed with the other cell's    #
--- # outputs before it is and fed into a simple 2-bit "John von Neumann randomness extractor"      #
--- # (extracting edges). A total of 64 de-biased bits are combined using a LFSR-style shift        #
--- # register (for improved spectral distribution) to provide one final random data byte.          #
--- # ********************************************************************************************* #
--- # BSD 3-Clause License                                                                          #
--- #                                                                                               #
--- # Copyright (c) 2024, Stephan Nolting. All rights reserved.                                     #
--- #                                                                                               #
--- # Redistribution and use in source and binary forms, with or without modification, are          #
--- # permitted provided that the following conditions are met:                                     #
--- #                                                                                               #
--- # 1. Redistributions of source code must retain the above copyright notice, this list of        #
--- #    conditions and the following disclaimer.                                                   #
--- #                                                                                               #
--- # 2. Redistributions in binary form must reproduce the above copyright notice, this list of     #
--- #    conditions and the following disclaimer in the documentation and/or other materials        #
--- #    provided with the distribution.                                                            #
--- #                                                                                               #
--- # 3. Neither the name of the copyright holder nor the names of its contributors may be used to  #
--- #    endorse or promote products derived from this software without specific prior written      #
--- #    permission.                                                                                #
--- #                                                                                               #
--- # THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS   #
--- # OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF               #
--- # MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE    #
--- # COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,     #
--- # EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE #
--- # GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED    #
--- # AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING     #
--- # NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED  #
--- # OF THE POSSIBILITY OF SUCH DAMAGE.                                                            #
--- #################################################################################################
+-- ============================================================================================= --
+-- neoTRNG - A Tiny and Platform-Independent True Random Number Generator (Version 3.3)          --
+-- https://github.com/stnolting/neoTRNG                                                          --
+-- ============================================================================================= --
+-- The neoTNG true-random number generator samples free-running ring-oscillators (combinatorial  --
+-- loops) to obtain *phase noise* hat is used as entropy source. The individual ring-oscillators --
+-- are based on plain inverter chains that are decoupled using individually-enabled latches in   --
+-- order to prevent the synthesis tool from trimming parts of the logic.                         --
+--                                                                                               --
+-- Hence, the TRNG provides a platform- agnostic architecture that can be implemented for any    --
+-- FPGA/ASIC without requiring primitive instantiation or technology-specific attributes or      --
+-- platform-specific synthesis options.                                                          --
+--                                                                                               --
+-- The random output from each entropy cells is synchronized and XOR-ed with the other cell's    --
+-- outputs before it is and fed into a simple 2-bit "John von Neumann randomness extractor"      --
+-- (extracting edges). <NUM_RAW_BITS> de-biased bits are combined using an LFSR-style shift      --
+-- register (for improved spectral distribution) to generate one final random data byte.         --
+-- ============================================================================================= --
+-- BSD 3-Clause License                                                                          --
+--                                                                                               --
+-- Copyright (c) 2025, Stephan Nolting. All rights reserved.                                     --
+--                                                                                               --
+-- Redistribution and use in source and binary forms, with or without modification, are          --
+-- permitted provided that the following conditions are met:                                     --
+--                                                                                               --
+-- 1. Redistributions of source code must retain the above copyright notice, this list of        --
+--    conditions and the following disclaimer.                                                   --
+--                                                                                               --
+-- 2. Redistributions in binary form must reproduce the above copyright notice, this list of     --
+--    conditions and the following disclaimer in the documentation and/or other materials        --
+--    provided with the distribution.                                                            --
+--                                                                                               --
+-- 3. Neither the name of the copyright holder nor the names of its contributors may be used to  --
+--    endorse or promote products derived from this software without specific prior written      --
+--    permission.                                                                                --
+--                                                                                               --
+-- THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS   --
+-- OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF               --
+-- MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE    --
+-- COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,     --
+-- EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE --
+-- GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED    --
+-- AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING     --
+-- NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED  --
+-- OF THE POSSIBILITY OF SUCH DAMAGE.                                                            --
+-- ============================================================================================= --
 
 library ieee;
 use ieee.std_logic_1164.all;
@@ -51,9 +51,10 @@ use ieee.numeric_std.all;
 
 entity neoTRNG is
   generic (
-    NUM_CELLS     : natural range 1 to 99 := 3; -- number of ring-oscillator cells
-    NUM_INV_START : natural range 3 to 99 := 5; -- number of inverters in first ring-oscillator cell, has to be odd
-    SIM_MODE      : boolean := false -- enable simulation mode (no physical random if enabled!)
+    NUM_CELLS     : natural range 1 to 99   := 3; -- number of ring-oscillator cells
+    NUM_INV_START : natural range 3 to 99   := 5; -- number of inverters in first ring-oscillator cell, has to be odd
+    NUM_RAW_BITS  : natural range 1 to 4096 := 64; -- number of XOR-ed raw bits per random sample byte (has to be a power of 2)
+    SIM_MODE      : boolean                 := false -- enable simulation mode (no physical random if enabled!)
   );
   port (
     clk_i    : in  std_ulogic; -- module clock
@@ -65,6 +66,17 @@ entity neoTRNG is
 end neoTRNG;
 
 architecture neoTRNG_rtl of neoTRNG is
+
+  -- compute ceil[log(x)] --
+  function clog2_f(x : natural) return natural is
+  begin
+    for i in 0 to natural'high loop
+      if (2**i >= x) then
+        return i;
+      end if;
+    end loop;
+    return 0;
+  end function clog2_f;
 
   -- entropy source cell --
   component neoTRNG_cell
@@ -96,18 +108,21 @@ architecture neoTRNG_rtl of neoTRNG is
   -- sampling control --
   signal sample_en    : std_ulogic; -- global enable
   signal sample_sreg  : std_ulogic_vector(7 downto 0); -- shift-register / de-serializer
-  signal sample_cnt   : std_ulogic_vector(6 downto 0); -- bits-per-sample (64) counter
+  signal sample_cnt   : std_ulogic_vector(clog2_f(NUM_RAW_BITS) downto 0); -- bits-per-sample counter
+
+  -- LFST tap mask --
+  constant tapmask_c : std_ulogic_vector(7 downto 0) := "00000111"; -- CRC-8: x^8 + x^2 + x^1 + 1
 
 begin
 
   -- Sanity Checks --------------------------------------------------------------------------
   -- -------------------------------------------------------------------------------------------
   assert false report
-    "[neoTRNG] The neoTRNG (v3.2) - A Tiny and Platform-Independent True Random Number Generator, " &
+    "[neoTRNG] The neoTRNG (v3.3) - A Tiny and Platform-Independent True Random Number Generator, " &
     "https://github.com/stnolting/neoTRNG" severity note;
 
   assert (NUM_INV_START mod 2) /= 0 report
-    "[neoTRNG] Number of inverters in first cell <NUM_INV_START> has to be odd!" severity error;
+    "[neoTRNG] Number of inverters in first cell [NUM_INV_START] has to be odd!" severity error;
 
   assert not SIM_MODE report
     "[neoTRNG] Simulation-mode enabled (NO TRUE/PHYSICAL RANDOM)!" severity warning;
@@ -180,8 +195,12 @@ begin
         sample_cnt  <= (others => '0');
         sample_sreg <= (others => '0');
       elsif (debias_valid = '1') then -- LFSR-style sampling shift-register to scramble and mix random stream
-        sample_cnt  <= std_ulogic_vector(unsigned(sample_cnt) + 1);
-        sample_sreg <= sample_sreg(6 downto 0) & (sample_sreg(7) xor debias_data);
+        sample_cnt <= std_ulogic_vector(unsigned(sample_cnt) + 1);
+        if (sample_sreg(sample_sreg'left) = '1') then -- feedback bit
+          sample_sreg <= (sample_sreg(sample_sreg'left-1 downto 0) & debias_data);
+        else
+          sample_sreg <= (sample_sreg(sample_sreg'left-1 downto 0) & debias_data) xor tapmask_c;
+        end if;
       end if;
     end if;
   end process sampling_control;
@@ -192,11 +211,11 @@ begin
 
 end neoTRNG_rtl;
 
--- **********************************************************************************************************
--- neoTRNG entropy source cell, based on a simple ring-oscillator constructed from an odd number
--- of inverter. The inverters are decoupled using individually-enabled latches to prevent synthesis
--- from "optimizing" (=removing) parts of the oscillator chain.
--- **********************************************************************************************************
+-- ================================================================================================ --
+-- neoTRNG entropy source cell, based on a simple ring-oscillator constructed from an odd number    --
+-- of inverter. The inverters are decoupled using individually-enabled latches to prevent synthesis --
+-- from "optimizing" (=removing) parts of the oscillator chain.                                     --
+-- ================================================================================================ --
 
 library ieee;
 use ieee.std_logic_1164.all;
