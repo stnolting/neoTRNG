@@ -1,18 +1,26 @@
+-- simple neoTRNG testbench --
+
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 use std.textio.all;
 
 entity neoTRNG_tb is
+  generic (
+    NUM_CELLS     : natural range 1 to 99   := 3; -- number of ring-oscillator cells
+    NUM_INV_START : natural range 3 to 99   := 5; -- number of inverters in first ring-oscillator cell, has to be odd
+    NUM_RAW_BITS  : natural range 1 to 4096 := 64 -- number of XOR-ed raw bits per random sample byte (has to be a power of 2)
+  );
 end neoTRNG_tb;
 
 architecture neoTRNG_tb_rtl of neoTRNG_tb is
 
-  -- dut: neoTRNG --
+  -- neoTRNG --
   component neoTRNG
     generic (
       NUM_CELLS     : natural range 1 to 99 := 3;
       NUM_INV_START : natural range 3 to 99 := 5;
+      NUM_RAW_BITS  : natural range 1 to 4096 := 64;
       SIM_MODE      : boolean := false
     );
     port (
@@ -41,9 +49,10 @@ begin
   -- dut --
   neoTRNG_inst: neoTRNG
   generic map (
-    NUM_CELLS     => 3,
-    NUM_INV_START => 5,
-    SIM_MODE      => true -- this is a simulation!
+    NUM_CELLS     => NUM_CELLS,
+    NUM_INV_START => NUM_INV_START,
+    NUM_RAW_BITS  => NUM_RAW_BITS,
+    SIM_MODE      => true -- this is a simulation
   )
   port map (
     clk_i    => clk_gen,
