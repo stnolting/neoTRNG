@@ -13,8 +13,8 @@
 --                                                                                               --
 -- The random output from each entropy cells is synchronized and XOR-ed with the other cell's    --
 -- outputs before it is and fed into a simple 2-bit "John von Neumann randomness extractor"      --
--- (extracting edges). <NUM_RAW_BITS> de-biased bits are combined using an LFSR-style shift      --
--- register (for improved spectral distribution) to generate one final random data byte.         --
+-- (extracting edges). <NUM_RAW_BITS> de-biased bits are combined using an CRC-style shift       --
+-- register (entropy compression) to generate one final random data byte.                        --
 -- ============================================================================================= --
 -- BSD 3-Clause License                                                                          --
 --                                                                                               --
@@ -67,7 +67,7 @@ end neoTRNG;
 
 architecture neoTRNG_rtl of neoTRNG is
 
-  -- compute ceil[log(x)] --
+  -- round_up[log2(x)] --
   function clog2_f(x : natural) return natural is
   begin
     for i in 0 to natural'high loop
@@ -110,8 +110,8 @@ architecture neoTRNG_rtl of neoTRNG is
   signal sample_sreg  : std_ulogic_vector(7 downto 0); -- shift-register / de-serializer
   signal sample_cnt   : std_ulogic_vector(clog2_f(NUM_RAW_BITS) downto 0); -- bits-per-sample counter
 
-  -- LFST tap mask --
-  constant tapmask_c : std_ulogic_vector(7 downto 0) := "00000111"; -- CRC-8: x^8 + x^2 + x^1 + 1
+  -- CRC polynomial (tap mask) --
+  constant poly_c : std_ulogic_vector(7 downto 0) := "00000111"; -- CRC-8: x^8 + x^2 + x^1 + 1
 
 begin
 
@@ -123,6 +123,9 @@ begin
 
   assert (NUM_INV_START mod 2) /= 0 report
     "[neoTRNG] Number of inverters in first cell [NUM_INV_START] has to be odd!" severity error;
+
+  assert 2**clog2_f(NUM_RAW_BITS) = NUM_RAW_BITS report
+    "[neoTRNG] Number of pre-processed raw bits [NUM_RAW_BITS] has to be a power of 2!" severity error;
 
   assert not SIM_MODE report
     "[neoTRNG] Simulation-mode enabled (NO TRUE/PHYSICAL RANDOM)!" severity warning;
@@ -194,12 +197,13 @@ begin
       if (sample_en = '0') or (sample_cnt(sample_cnt'left) = '1') then -- start new iteration
         sample_cnt  <= (others => '0');
         sample_sreg <= (others => '0');
-      elsif (debias_valid = '1') then -- LFSR-style sampling shift-register to scramble and mix random stream
+      elsif (debias_valid = '1') then
         sample_cnt <= std_ulogic_vector(unsigned(sample_cnt) + 1);
-        if (sample_sreg(sample_sreg'left) = '1') then -- feedback bit
-          sample_sreg <= (sample_sreg(sample_sreg'left-1 downto 0) & debias_data);
+        -- CRC-style sampling shift-register to mix random stream --
+        if ((sample_sreg(sample_sreg'left) xor debias_data) = '1') then -- feedback bit
+          sample_sreg <= (sample_sreg(sample_sreg'left-1 downto 0) & '0') xor poly_c;
         else
-          sample_sreg <= (sample_sreg(sample_sreg'left-1 downto 0) & debias_data) xor tapmask_c;
+          sample_sreg <= (sample_sreg(sample_sreg'left-1 downto 0) & '0');
         end if;
       end if;
     end if;
