@@ -197,7 +197,7 @@ begin
       if (sample_en = '0') or (sample_cnt(sample_cnt'left) = '1') then -- start new iteration
         sample_cnt  <= (others => '0');
         sample_sreg <= (others => '0');
-      elsif (debias_valid = '1') then
+      elsif (debias_valid = '1') then -- valid raw random bit
         sample_cnt <= std_ulogic_vector(unsigned(sample_cnt) + 1);
         -- CRC-style sampling shift-register to mix random stream --
         if ((sample_sreg(sample_sreg'left) xor debias_data) = '1') then -- feedback bit
@@ -214,6 +214,7 @@ begin
   valid_o <= sample_cnt(sample_cnt'left);
 
 end neoTRNG_rtl;
+
 
 -- ================================================================================================ --
 -- neoTRNG entropy source cell, based on a simple ring-oscillator constructed from an odd number    --
