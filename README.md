@@ -1,4 +1,4 @@
-# The neoTRNG True Random Number Generator - Version 3.2
+# The neoTRNG True Random Number Generator
 
 **A Tiny and Platform-Independent True Random Number Generator for _any_ FPGA (and even ASICs).**
 
@@ -13,6 +13,7 @@
 * [Evaluation](#evaluation)
 * [Hardware Utilization](#hardware-utilization)
 * [Simulation](#simulation)
+* [Acknowledgments](#acknowledgments)
 * [References](#references)
 
 
@@ -41,13 +42,13 @@ the neoTRNG is implemented as default SoC module.
 > It is possible that there might be at least _some_ cross correlations between internal/external
 signals/events and the generated random numbers. Hence, there is **no guarantee at all** the neoTRNG provides
 _perfect or even cryptographically secure_ random numbers! See the provided evaluation results or (even better)
-test it by yourself. Furthermore, there is no tampering detection mechanism or
-online health monitoring available yet to check for integrity/quality of the generated random data.
+test it by yourself. Furthermore, there is no tampering detection mechanism or online health monitoring available
+yet to check for integrity/quality of the generated random data.
 
 > [!WARNING]
-> Keeping the neoTRNG _permanently enabled_ will increase dynamic power consumption and
-might also cause local heating of the chip (when using very large configurations). Furthermore, additional
-electromagnetic interference (EMI) might be emitted by the design.
+> Keeping the neoTRNG _permanently enabled_ will increase dynamic power consumption and might also cause
+local heating of the chip (when using very large configurations). Furthermore, additional electromagnetic
+interference (EMI) might be emitted by the design.
 
 
 ## Top Entity
@@ -59,9 +60,10 @@ has no dependencies at all (like special libraries, packages or submodules).
 ```vhdl
 entity neoTRNG is
   generic (
-    NUM_CELLS     : natural range 1 to 99 := 3; -- number of ring-oscillator cells
-    NUM_INV_START : natural range 3 to 99 := 5; -- number of inverters in first cell, has to be odd
-    SIM_MODE      : boolean := false -- enable simulation mode (no physical random if enabled!)
+    NUM_CELLS     : natural range 1 to 99   := 3; -- number of ring-oscillator cells
+    NUM_INV_START : natural range 3 to 99   := 5; -- number of inverters in first ring-oscillator cell, has to be odd
+    NUM_RAW_BITS  : natural range 1 to 4096 := 64; -- number of XOR-ed raw bits per random sample byte (has to be a power of 2)
+    SIM_MODE      : boolean                 := false -- enable simulation mode (no physical random if enabled!)
   );
   port (
     clk_i    : in  std_ulogic; -- module clock
@@ -90,6 +92,7 @@ dynamic switching activity and power consumption.
 Three generics are provided to configure the neoTRNG. `NUM_CELLS` defines the total number of entropy
 cells. `NUM_INV_START` defines the number of inverters (= the length of the ring-oscillator) in the very
 first cell. These two generics are further described in the [Architecture](#architecture) section below.
+`NUM_RAW_BITS` defines the number of raw entropy bits that get XOR-ed into the final random sample byte.
 The last generic `SIM_MODE` can be set to allow [simulating](#simulation) of the TRNG within a plain RTL
 simulation.
 
@@ -111,7 +114,6 @@ XOR gate before the stream is [de-biased](#de-biasing) by a simple randomness ex
 bits are sampled / de-serialized by the [sampling unit](#sampling-unit) to provide byte-wide random number.
 The sampling unit also applies a simple post-processing in order to improve the spectral distribution of
 the random numbers.
-
 
 ### Entropy Cells
 
@@ -144,7 +146,6 @@ cell can be seen [here](https://raw.githubusercontent.com/stnolting/neoTRNG/main
 It shows that all latch+inverter elements of the ring-oscillator chain were successfully mapped to individual
 LUT4s.
 
-
 ### De-Biasing
 
 As soon as the last bit of the entropy cell's daisy-chained enable shift register is set the de-biasing
@@ -160,44 +161,42 @@ Whenever an edge has been detected a "valid" signal is send to the following sam
 requires at least two clock cycles to generate a single random bit. If no edge is detected (`00` or `11`)
 the valid signal remains low and the sampling unit halts.
 
-
 ### Sampling Unit
 
 The sampling unit implements a 8-bit shift register to convert the serial de-biased bitstream into byte-wide
 random numbers. Additionally, the sample unit provides a simple post processing to improve the spectral
 distribution of the obtained random samples.
 
-In order to generate one byte of random data the sampling unit reset its internal shift register to all-zero
-and starts consuming in 64 bits of the de-biased random stream. The shift register is implemented as
-_linear-feedback shift register_ ([LFSR](https://en.wikipedia.org/wiki/Linear-feedback_shift_register)) that
-XORs the input stream with the last bit of the register to further scramble and mix the random bitstream.
-
 ![neoTRNG sampling unit](https://raw.githubusercontent.com/stnolting/neoTRNG/main/img/neotrng_sampling_unit.png)
+
+In order to generate one byte of random data the sampling unit reset its internal shift register to all-zero
+and starts consuming single bits from the de-biased random stream. By default, 64 raw entropy bits are used,
+but this number can be adjusted by the `NUM_RAW_BITS` generic (using more random bits might improve random
+quality at the extend of the final generation rate). The shift register implements a simple 8-bit
+[CRC](https://en.wikipedia.org/wiki/Cyclic_redundancy_check) for entropy compression. The following
+polynomial is used: `x^8 + x^2 + x^1 + 1`
 
 
 ## Evaluation
 
 The neoTRNG is evaluated as part of the [NEORV32](https://github.com/stnolting/neorv32) processor, where the
-neoTRNG is available as standard SoC module. The processor was synthesized for an Intel Cyclone IV `EP4CE22F17C6N`
-FPGA running at 100MHz. For the evaluation the very small **default configuration** has been used: three entropy
-cells are implemented where the first one implements 5 inverters, the second one implements 9 inverters and the
-third one implements 11 inverters. More complex configurations with more/larger entropy cells might provide
-"better" random quality.
+neoTRNG is available as standard SoC module. The system was implemented on an AMD Artix-7 (`xc7a35ticsg324-1L`)
+FPGA running at 150MHz. For the evaluation the tiny **default configuration** has been used:
 
 ```
 NUM_CELLS     = 3
 NUM_INV_START = 5
+NUM_RAW_BITS  = 64
 SIM_MODE      = false
 ```
 
 > [!NOTE]
-> A total amount of **4MB** of random data has been obtained for the evaluations. This data set is
-available as `entropy.bin` binary file in the [release](https://github.com/stnolting/neoTRNG/releases) assets.
-
+> A total amount of **32MB** of random data has been obtained for the evaluations. This data set is
+available as `data.bin` binary file in the [release](https://github.com/stnolting/neoTRNG/releases) assets.
 
 ### Histogram Analysis
 
-For the simple histogram analysis 4MB of random bytes were sampled from the neoTRNG. The obtained bytes
+For the simple histogram analysis 32MB of random bytes were sampled from the neoTRNG. The obtained bytes
 were accumulated according to their occurrence and sorted into bins where each bin represents one specific
 byte pattern (1 byte = 8 bits = 256 different patterns). The resulting was then analyzed with regard to
 its statistical properties:
@@ -208,34 +207,31 @@ its statistical properties:
 
 ```
 [NOTE] integer numbers only
-Number of samples: 4194304
+Number of samples: 33554432
 Arithmetic mean:   127 (optimum would be 127)
 
 Histogram occurrence
-Average:      16384 (optimum would be 4194304/256 = 16384)
-Min:          16051 = average - 333 (deviation) at bin 183 (optimum deviation would be 0)
-Max:          16706 = average + 322 (deviation) at bin 144 (optimum deviation would be 0)
-Average dev.: +/- 96 (optimum would be 0)
+Average:      131072 (optimum would be 33554432/256 = 131072)
+Min:          130036 = average - 1036 (deviation) at bin 210 (optimum deviation would be 0)
+Max:          132035 = average + 963 (deviation) at bin 163 (optimum deviation would be 0)
+Average dev.: +/- 282 (optimum would be 0)
 ```
-
 
 ### Entropy per Byte
 
 ```
-$ ent entropy.bin
-Entropy = 7.994306 bits per byte.
+Entropy = 7.999995 bits per byte.
 
 Optimum compression would reduce the size
-of this 4194304 byte file by 0 percent.
+of this 33226752 byte file by 0 percent.
 
-Chi square distribution for 4194304 samples is 16726.32, and randomly
-would exceed this value less than 0.01 percent of the times.
+Chi square distribution for 33226752 samples is 243.56, and randomly
+would exceed this value 68.61 percent of the times.
 
-Arithmetic mean value of data bytes is 127.9417 (127.5 = random).
-Monte Carlo value for Pi is 3.132416851 (error 0.29 percent).
-Serial correlation coefficient is 0.000496 (totally uncorrelated = 0.0).
+Arithmetic mean value of data bytes is 127.4802 (127.5 = random).
+Monte Carlo value for Pi is 3.141387759 (error 0.01 percent).
+Serial correlation coefficient is 0.000155 (totally uncorrelated = 0.0).
 ```
-
 
 ### FIPS 140-2 RNG Tests
 
@@ -247,34 +243,15 @@ This is free software; see the source for copying conditions.  There is NO warra
 
 rngtest: starting FIPS tests...
 rngtest: entropy source drained
-rngtest: bits received from input: 33554432
-rngtest: FIPS 140-2 successes: 1676
-rngtest: FIPS 140-2 failures: 1
-rngtest: FIPS 140-2(2001-10-10) Monobit: 0
-rngtest: FIPS 140-2(2001-10-10) Poker: 0
-rngtest: FIPS 140-2(2001-10-10) Runs: 1
-rngtest: FIPS 140-2(2001-10-10) Long run: 0
+rngtest: bits received from input: 265814016
+rngtest: FIPS 140-2 successes: 13279
+rngtest: FIPS 140-2 failures: 11
+rngtest: FIPS 140-2(2001-10-10) Monobit: 1
+rngtest: FIPS 140-2(2001-10-10) Poker: 1
+rngtest: FIPS 140-2(2001-10-10) Runs: 4
+rngtest: FIPS 140-2(2001-10-10) Long run: 5
 rngtest: FIPS 140-2(2001-10-10) Continuous run: 0
-rngtest: input channel speed: (min=138.214; avg=1557.190; max=2119.276)Mibits/s
-rngtest: FIPS tests speed: (min=32.660; avg=106.337; max=111.541)Mibits/s
-rngtest: Program run time: 330110 microseconds
 ```
-
-
-### Dieharder Random Number Testsuite
-
-The dieharder random number testsuite ([wikipedia](https://en.wikipedia.org/wiki/Diehard_tests),
-[homepage](https://webhome.phy.duke.edu/~rgb/General/dieharder.php)) by Robert G. Brown is a great toolset
-to stress-test and characterize random number generators.
-
-> [!IMPORTANT]
-> **:construction: work in progress :construction:**
-> 
-> dieharder needs a large set of random samples (something around 4GB). Otherwise, the random data
-is _rewind_ obviously reducing overall entropy. Right now I am using a simple UART connection to transfer
-data from a FPGA to the PC. But even a higher Baud rates a data set of 4GB would take _ages_ to send.
-Until I have a better transfer channel (or just a lot of time) this evaluation is _"work in progress"_.
-
 
 ### Hardware Utilization
 
@@ -285,23 +262,22 @@ Quartus Prime.
 ```
 Module Hierarchy                                      Logic Cells    Logic Registers
 ------------------------------------------------------------------------------------
-neoTRNG:neoTRNG_inst                                      56 (27)            46 (19)
+neoTRNG:neoTRNG_inst                                      57 (27)            46 (19)
   neoTRNG_cell:\entropy_source:0:neoTRNG_cell_inst         8  (8)             7  (7)
   neoTRNG_cell:\entropy_source:1:neoTRNG_cell_inst        10 (10)             9  (9)
-  neoTRNG_cell:\entropy_source:2:neoTRNG_cell_inst        14 (14)            11 (11)
+  neoTRNG_cell:\entropy_source:2:neoTRNG_cell_inst        15 (15)            11 (11)
 ```
 
 > [!NOTE]
 > Synthesis tools might emit a warning that latches and combinatorial loops
 have been detected. However, this is no design flaw as this is exactly what we want. :wink:
 
-
 ### Throughput
 
 The neoTRNG's maximum generation rate is defined by two factors:
 
 * A = 2: cycles required by the de-biasing logic to output one raw random bit
-* B = 64: number of raw random bits required by the sampling unit to generate one random byte
+* B = NUM_RAW_BITS (default = 64): number of raw random bits required by the sampling unit to generate one random byte
 
 Hence, the neoTRNG requires _at least_ `A * B = 2 * 64 = 128` clock cycles to emit one random byte.
 FPGA evaluation has shown that the actual sampling time is around 300 clock cycles. Thus, an
@@ -325,21 +301,21 @@ values to the simulator console. The testbench can be simulated with GHDL by usi
 
 ```
 neoTRNG/sim$ sh ghdl.sh
-../rtl/neoTRNG.vhd:105:3:@0ms:(assertion note): [neoTRNG] The neoTRNG (v3.2) - A Tiny and Platform-Independent True Random Number Generator, https://github.com/stnolting/neoTRNG
-../rtl/neoTRNG.vhd:112:3:@0ms:(assertion warning): [neoTRNG] Simulation-mode enabled (NO TRUE/PHYSICAL RANDOM)!
-18
-210
+../rtl/neoTRNG.vhd:120:3:@0ms:(assertion note): [neoTRNG] The neoTRNG (v3.3) - A Tiny and Platform-Independent True Random Number Generator, https://github.com/stnolting/neoTRNG
+../rtl/neoTRNG.vhd:130:3:@0ms:(assertion warning): [neoTRNG] Simulation-mode enabled (NO TRUE/PHYSICAL RANDOM)!
+89
 147
-5
-79
-94
-70
-100
-185
-246
+99
+116
+11
+55
 203
-220
-ghdl:info: simulation stopped by --stop-time @100us
+84
+97
+204
+117
+196
+ghdl:info: simulation stopped by --stop-time @100u
 ```
 
 The GHDL waveform data is stored to `sim/neoTRNG_tb.ghw` and can be viewed using `gtkwave`:
@@ -348,8 +324,16 @@ The GHDL waveform data is stored to `sim/neoTRNG_tb.ghw` and can be viewed using
 neoTRNG/sim$ gtkwave neoTRNG_tb.ghw
 ```
 
-A simple simulation run is executed by the project's
-[`neoTRNG-sim` GitHub action workflow](https://github.com/stnolting/neoTRNG/actions).
+A simple simulation run is executed by the [`neoTRNG-sim`](https://github.com/stnolting/neoTRNG/actions)
+GitHub actions workflow.
+
+
+## Acknowledgments
+
+A big thank you to Maarten Baert (@MaartenBaert) who did a great
+[evaluation of the neoTRNG (v3.2)](https://github.com/stnolting/neoTRNG/issues/6)
+and came up with excellent ideas to improve it.
+
 
 ## References
 
