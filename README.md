@@ -181,7 +181,7 @@ polynomial is used: `x^8 + x^2 + x^1 + 1`
 
 The neoTRNG is evaluated as part of the [NEORV32](https://github.com/stnolting/neorv32) processor, where the
 neoTRNG is available as standard SoC module. The system was implemented on an AMD Artix-7 (`xc7a35ticsg324-1L`)
-FPGA running at 150MHz. For the evaluation the **default configuration** has been used:
+FPGA running at 150MHz. For the evaluation the tiny **default configuration** has been used:
 
 ```
 NUM_CELLS     = 3
@@ -251,9 +251,6 @@ rngtest: FIPS 140-2(2001-10-10) Poker: 1
 rngtest: FIPS 140-2(2001-10-10) Runs: 4
 rngtest: FIPS 140-2(2001-10-10) Long run: 5
 rngtest: FIPS 140-2(2001-10-10) Continuous run: 0
-rngtest: input channel speed: (min=4.772; avg=89.647; max=134.320)Mibits/s
-rngtest: FIPS tests speed: (min=22.127; avg=151.764; max=164.427)Mibits/s
-rngtest: Program run time: 4501651 microseconds
 ```
 
 ### Hardware Utilization
