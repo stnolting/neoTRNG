@@ -94,10 +94,10 @@ architecture neoTRNG_rtl of neoTRNG is
   end component;
 
   -- entropy cell interconnect --
-  signal cell_en_in   : std_ulogic_vector(NUM_CELLS-1 downto 0); -- enable-sreg input
-  signal cell_en_out  : std_ulogic_vector(NUM_CELLS-1 downto 0); -- enable-sreg output
-  signal cell_rnd     : std_ulogic_vector(NUM_CELLS-1 downto 0); -- cell random output
-  signal cell_sum     : std_ulogic; -- combined random data
+  signal cell_en_in  : std_ulogic_vector(NUM_CELLS-1 downto 0); -- enable-sreg input
+  signal cell_en_out : std_ulogic_vector(NUM_CELLS-1 downto 0); -- enable-sreg output
+  signal cell_rnd    : std_ulogic_vector(NUM_CELLS-1 downto 0); -- cell random output
+  signal cell_sum    : std_ulogic; -- combined random data
 
   -- de-biasing --
   signal debias_sreg  : std_ulogic_vector(1 downto 0); -- sample buffer
@@ -106,12 +106,12 @@ architecture neoTRNG_rtl of neoTRNG is
   signal debias_data  : std_ulogic; -- result bit
 
   -- sampling control --
-  signal sample_en    : std_ulogic; -- global enable
-  signal sample_sreg  : std_ulogic_vector(7 downto 0); -- shift-register / de-serializer
-  signal sample_cnt   : std_ulogic_vector(clog2_f(NUM_RAW_BITS) downto 0); -- bits-per-sample counter
+  signal sample_en   : std_ulogic; -- global enable
+  signal sample_sreg : std_ulogic_vector(7 downto 0); -- shift-register / de-serializer
+  signal sample_cnt  : std_ulogic_vector(clog2_f(NUM_RAW_BITS) downto 0); -- bits-per-sample counter
 
   -- CRC polynomial (tap mask) --
-  constant poly_c : std_ulogic_vector(7 downto 0) := "00000111"; -- CRC-8: x^8 + x^2 + x^1 + 1
+  constant poly_c : std_ulogic_vector(7 downto 0) := "00000111"; -- CRC-8: x^8 + x^2 + x^1 + x^0
 
 begin
 
@@ -288,7 +288,7 @@ begin
       inv_out(i) <= not inv_in(i); -- this is one part of the ring oscillator's physical propagation delay
     end generate;
 
-    -- inverter with "propagation delay (as a simple FF)" --
+    -- inverter with "propagation delay" (implemented as a simple FF) --
     inverter_sim:
     if SIM_MODE generate -- for SIMULATION ONLY
       inverter_sim_ff: process(clk_i) -- this will NOT generate true random numbers
