@@ -115,7 +115,7 @@ architecture neoTRNG_rtl of neoTRNG is
 
 begin
 
-  -- Sanity Checks --------------------------------------------------------------------------
+  -- Configuration Checks -------------------------------------------------------------------
   -- -------------------------------------------------------------------------------------------
   assert false report
     "[neoTRNG] The neoTRNG (v3.3) - A Tiny and Platform-Independent True Random Number Generator, " &
