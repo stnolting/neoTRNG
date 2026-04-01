@@ -60,10 +60,10 @@ has no dependencies at all (like special libraries, packages or submodules).
 ```vhdl
 entity neoTRNG is
   generic (
-    NUM_CELLS     : natural range 1 to 99   := 3; -- number of ring-oscillator cells
-    NUM_INV_START : natural range 3 to 99   := 5; -- number of inverters in first ring-oscillator cell, has to be odd
-    NUM_RAW_BITS  : natural range 1 to 4096 := 64; -- number of XOR-ed raw bits per random sample byte (has to be a power of 2)
-    SIM_MODE      : boolean                 := false -- enable simulation mode (no physical random if enabled!)
+    NUM_CELLS     : natural range 1 to 255;  -- number of ring-oscillator cells
+    NUM_INV_START : natural range 3 to 4095; -- number of inverters in first ring-oscillator cell, has to be odd
+    NUM_RAW_BITS  : natural range 1 to 4096; -- number of XOR-ed raw bits per random sample byte (has to be a power of 2)
+    SIM_MODE      : boolean                  -- enable simulation mode (no physical random if enabled!)
   );
   port (
     clk_i    : in  std_ulogic; -- module clock
@@ -95,6 +95,25 @@ first cell. These two generics are further described in the [Architecture](#arch
 `NUM_RAW_BITS` defines the number of raw entropy bits that get XOR-ed into the final random sample byte.
 The last generic `SIM_MODE` can be set to allow [simulating](#simulation) of the TRNG within a plain RTL
 simulation.
+
+### Example/Default Configuration and Instantiation
+
+```vhdl
+neoTRNG_inst: neoTRNG
+generic map (
+  NUM_CELLS     => 3,    -- 3 entropy cells / ring-oscillators in total
+  NUM_INV_START => 5,    -- 5 inverters in first ring-oscillator
+  NUM_RAW_BITS  => 64,   -- consume 64 raw random bits per output byte
+  SIM_MODE      => false -- disable simulation-mode for physical implementation
+)
+port map (
+  clk_i    => clk,
+  rstn_i   => rstn,
+  enable_i => enable,
+  valid_o  => valid,
+  data_o   => data
+);
+```
 
 
 ## Architecture
