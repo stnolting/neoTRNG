@@ -70,7 +70,7 @@ architecture neoTRNG_rtl of neoTRNG is
   -- round_up[log2(x)] --
   function clog2_f(x : natural) return natural is
   begin
-    for i in 0 to natural'high loop
+    for i in 0 to 31 loop
       if (2**i >= x) then
         return i;
       end if;
