@@ -53,7 +53,7 @@ entity neoTRNG is
   generic (
     NUM_CELLS     : natural range 1 to 255;  -- number of ring-oscillator cells, min 1
     NUM_INV_START : natural range 3 to 4095; -- number of inverters in first ring-oscillator cell, has to be odd
-    NUM_RAW_BITS  : natural range 1 to 4096; -- number of raw bits per random sample byte (has to be a power of 2)
+    NUM_RAW_BITS  : natural range 8 to 4096; -- number of raw bits per random sample byte (has to be a power of 2)
     SIM_MODE      : boolean                  -- enable simulation mode (no physical random if enabled!)
   );
   port (
